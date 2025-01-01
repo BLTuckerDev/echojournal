@@ -2,4 +2,17 @@
 <resources>
 
     <style name="Theme.EchoJournal" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <!-- Set the splash screen background color -->
+        <item name="windowSplashScreenBackground">@drawable/splash_background_gradient</item>
+
+        <!-- Use our custom icon as the splash image -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_screen_icon</item>
+
+        <!-- Control the duration of the splash screen -->
+        <item name="windowSplashScreenAnimationDuration">400</item>
+
+        <!-- Set the theme of the Activity that follows your splash screen -->
+        <item name="postSplashScreenTheme">@style/Theme.EchoJournal</item>
+    </style>
 </resources>

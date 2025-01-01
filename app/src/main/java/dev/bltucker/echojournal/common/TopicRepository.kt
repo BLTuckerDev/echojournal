@@ -3,8 +3,11 @@ package dev.bltucker.echojournal.common
 import dev.bltucker.echojournal.common.room.Topic
 import dev.bltucker.echojournal.common.room.TopicDao
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class TopicsRepository(private val topicDao: TopicDao) {
+@Singleton
+class TopicsRepository @Inject constructor(private val topicDao: TopicDao) {
 
     fun getAllTopics(): Flow<List<Topic>> = topicDao.getAllTopics()
 

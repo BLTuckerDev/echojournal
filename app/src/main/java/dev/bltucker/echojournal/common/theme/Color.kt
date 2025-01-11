@@ -42,6 +42,8 @@ object EchoJournalColors {
     val OnSurfaceVariant = Color(0xFF49454F)
     val InverseOnSurface = Color(0xFFF4EFF4)
     val Background = Color(0xFFFFFBFE)
+
+    val Gray6 = Color(0xFFF2F2F7)
 }
 
 // Mood-specific Colors

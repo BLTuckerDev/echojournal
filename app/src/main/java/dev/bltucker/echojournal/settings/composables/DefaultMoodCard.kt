@@ -23,7 +23,7 @@ fun DefaultMoodCard(
     selectedMood: Mood? = null,
     onMoodSelected: (Mood) -> Unit = {}
 ) {
-    Card(
+    ElevatedCard(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface

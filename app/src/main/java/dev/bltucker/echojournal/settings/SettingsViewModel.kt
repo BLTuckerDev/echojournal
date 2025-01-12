@@ -73,4 +73,25 @@ class SettingsViewModel @Inject constructor(
             topicsRepository.toggleDefaultStatus(topic)
         }
     }
+
+    fun onEnableEditTopicMode(){
+        mutableModel.update {
+            it.copy(isInTopicEditMode = true)
+        }
+    }
+
+    fun onClearEditTopicMode(){
+        mutableModel.update {
+            it.copy(isInTopicEditMode = false, editModeText = "")
+        }
+    }
+    fun onAddTopicClick(){
+        val name = mutableModel.value.editModeText
+        viewModelScope.launch {
+            topicsRepository.createTopic(name = name, isDefault = true)
+            mutableModel.update {
+                it.copy(isInTopicEditMode = false, editModeText = "")
+            }
+        }
+    }
 }

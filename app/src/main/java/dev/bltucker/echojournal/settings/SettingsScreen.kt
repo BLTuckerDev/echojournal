@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -38,7 +39,7 @@ import dev.bltucker.echojournal.settings.composables.MyTopicsCard
 
 const val SETTINGS_SCREEN_ROUTE = "settings"
 
-fun NavGraphBuilder.settingsScreen() {
+fun NavGraphBuilder.settingsScreen(onNavigateBack: () -> Unit) {
     composable(route = SETTINGS_SCREEN_ROUTE) {
         val viewModel = hiltViewModel<SettingsViewModel>()
         val model by viewModel.observableModel.collectAsStateWithLifecycle()
@@ -51,6 +52,7 @@ fun NavGraphBuilder.settingsScreen() {
         SettingsScreen(
             modifier = Modifier.fillMaxSize(),
             model = model,
+            onNavigateBack = onNavigateBack,
             onDefaultMoodSelected = viewModel::onUpdateDefaultMood,
             onToggleDefaultTopic = viewModel::onToggleDefaultTopic,
             onUpdateEditModeText = viewModel::onUpdateEditTopicText,
@@ -66,6 +68,7 @@ fun NavGraphBuilder.settingsScreen() {
 private fun SettingsScreen(
     modifier: Modifier = Modifier,
     model: SettingsModel,
+    onNavigateBack: () -> Unit,
     onDefaultMoodSelected: (Mood) -> Unit,
     onToggleDefaultTopic: (Topic) -> Unit,
     onUpdateEditModeText: (String) -> Unit = {},
@@ -82,10 +85,12 @@ private fun SettingsScreen(
                 ),
 
                 navigationIcon = {
-                    Icon(
-                        painter = painterResource(R.drawable.icon_navigate_before),
-                        contentDescription = "Back"
-                    )
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(
+                            painter = painterResource(R.drawable.icon_navigate_before),
+                            contentDescription = "Back"
+                        )
+                    }
                 }
             )
         },
@@ -157,7 +162,8 @@ private fun SettingsScreenPreview() {
             modifier = Modifier.fillMaxSize(),
             model = previewModel,
             onDefaultMoodSelected = {},
-            onToggleDefaultTopic = {}
+            onToggleDefaultTopic = {},
+            onNavigateBack = {}
         )
     }
 }
@@ -172,7 +178,8 @@ private fun SettingsScreenEmptyPreview() {
             modifier = Modifier.fillMaxSize(),
             model = emptyModel,
             onDefaultMoodSelected = {},
-            onToggleDefaultTopic = {}
+            onToggleDefaultTopic = {},
+            onNavigateBack = {}
         )
     }
 }

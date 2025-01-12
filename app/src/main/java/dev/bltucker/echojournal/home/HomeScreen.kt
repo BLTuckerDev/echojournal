@@ -34,6 +34,7 @@ import dev.bltucker.echojournal.R
 import dev.bltucker.echojournal.common.theme.EchoJournalTheme
 import dev.bltucker.echojournal.common.theme.GradientColors
 import dev.bltucker.echojournal.home.composables.JournalListSection
+import dev.bltucker.echojournal.home.composables.RecordingBottomSheet
 import java.time.format.DateTimeFormatter
 
 const val HOME_SCREEN_ROUTE = "home"
@@ -52,7 +53,8 @@ fun NavGraphBuilder.homeScreen(onNavigateToSettings: () -> Unit) {
         HomeScreen(
             modifier = Modifier.fillMaxSize(),
             model = model,
-            onNavigateToSettings = onNavigateToSettings
+            onNavigateToSettings = onNavigateToSettings,
+            onClickCreateEntryFab = viewModel::onClickCreateEntry
         )
     }
 }
@@ -62,7 +64,8 @@ fun NavGraphBuilder.homeScreen(onNavigateToSettings: () -> Unit) {
 fun HomeScreen(
     modifier: Modifier = Modifier,
     model: HomeModel,
-    onNavigateToSettings: () -> Unit
+    onNavigateToSettings: () -> Unit,
+    onClickCreateEntryFab: () -> Unit,
 ) {
     val dateTimeFormatter = remember { DateTimeFormatter.ofPattern("EEEE, MMM dd") }
 
@@ -99,7 +102,7 @@ fun HomeScreen(
         floatingActionButton = {
             FloatingActionButton(
                 shape = CircleShape,
-                onClick = { /* TODO */ },
+                onClick = onClickCreateEntryFab,
                 containerColor = MaterialTheme.colorScheme.primary,
             ){
                 Icon(
@@ -135,6 +138,17 @@ fun HomeScreen(
             }
         }
 
+        if (model.recordingState.isRecording) {
+            RecordingBottomSheet(
+                state = model.recordingState,
+                onStartRecording = { /* TODO: viewModel.startRecording() */ },
+                onPauseRecording = { /* TODO: viewModel.pauseRecording() */ },
+                onResumeRecording = { /* TODO: viewModel.resumeRecording() */ },
+                onCancelRecording = { /* TODO: viewModel.cancelRecording() */ },
+                onFinishRecording = { /* TODO: viewModel.finishRecording() */ }
+            )
+        }
+
     }
 }
 
@@ -142,7 +156,10 @@ fun HomeScreen(
 @Composable
 private fun HomeScreenPreview(){
     EchoJournalTheme {
-        HomeScreen(model = HomeModel(), onNavigateToSettings = {})
+        HomeScreen(model = HomeModel(),
+            onNavigateToSettings = {},
+            onClickCreateEntryFab = {},
+        )
     }
 }
 

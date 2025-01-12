@@ -7,7 +7,8 @@ import java.time.LocalDate
 import java.time.ZoneId
 
 data class HomeModel(val entries: List<JournalEntry> = emptyList(),
-                     val topics: List<Topic> = emptyList()
+                     val topics: List<Topic> = emptyList(),
+                     val recordingState: RecordingState = RecordingState()
 ){
 
     val entriesByDay: Map<DaySection, List<JournalEntryCardState>> = groupEntriesByDay(entries)
@@ -52,6 +53,13 @@ sealed class DaySection(val sortOrder: Int) : Comparable<DaySection> {
 
     override fun compareTo(other: DaySection): Int = sortOrder.compareTo(other.sortOrder)
 }
+
+data class RecordingState(
+    val isRecording: Boolean = false,
+    val isPaused: Boolean = false,
+    val recordingDuration: String = "00:00:00",
+    val showCheckmark: Boolean = false
+)
 
 
 

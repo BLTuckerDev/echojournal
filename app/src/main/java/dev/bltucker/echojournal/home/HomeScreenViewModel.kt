@@ -41,6 +41,11 @@ class HomeScreenViewModel @Inject constructor(
         }
     }
 
+    fun onClickCreateEntry() {
+        mutableModel.update {
+            it.copy(recordingState = it.recordingState.copy(isRecording = true))
+        }
+    }
 
 
 }

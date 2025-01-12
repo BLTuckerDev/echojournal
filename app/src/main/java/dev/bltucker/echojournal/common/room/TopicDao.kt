@@ -45,8 +45,8 @@ interface TopicDao {
     """)
     fun getTopicsForEntry(entryId: String): Flow<List<Topic>>
 
-    @Query("SELECT EXISTS(SELECT 1 FROM topics WHERE name = :name AND id != :excludeId)")
-    suspend fun isTopicNameTaken(name: String, excludeId: String = ""): Boolean
+    @Query("SELECT EXISTS(SELECT 1 FROM topics WHERE name = :name)")
+    suspend fun isTopicNameTaken(name: String): Boolean
 
     @Transaction
     suspend fun updateEntryTopics(entryId: String, topicIds: List<String>) {

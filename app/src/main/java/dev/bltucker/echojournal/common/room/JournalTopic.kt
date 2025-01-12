@@ -7,7 +7,7 @@ import java.util.UUID
 
 @Entity(
     tableName = "topics",
-    indices = [Index(value = ["name"], unique = true)]
+    indices = [Index(value = ["name"], unique = true)],
 )
 data class Topic(
     @PrimaryKey

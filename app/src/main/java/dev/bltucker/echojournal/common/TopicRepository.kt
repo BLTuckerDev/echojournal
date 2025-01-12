@@ -13,6 +13,10 @@ class TopicsRepository @Inject constructor(private val topicDao: TopicDao) {
 
     fun getAutoAppliedTopics(): Flow<List<Topic>> = topicDao.getAutoAppliedTopics()
 
+    suspend fun topicNameExists(name: String): Boolean{
+        return topicDao.isTopicNameTaken(name)
+    }
+
     suspend fun createTopic(name: String, isDefault: Boolean = false): Topic {
         if (topicDao.isTopicNameTaken(name)) {
             throw IllegalArgumentException("Topic name already exists")

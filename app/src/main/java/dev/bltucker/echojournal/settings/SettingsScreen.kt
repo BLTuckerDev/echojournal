@@ -122,14 +122,10 @@ private fun SettingsScreenPreview() {
             defaultMood = Mood.PEACEFUL,
             availableTopics = listOf(
                 Topic("1", "Work"),
-                Topic("2", "Concentration"),
+                Topic("2", "Concentration", isDefault = true),
                 Topic("3", "Family"),
-                Topic("4", "Love")
+                Topic("4", "Love", isDefault = true)
             ),
-            defaultTopics = listOf(
-                Topic("2", "Concentration"),
-                Topic("4", "Love")
-            )
         )
 
         SettingsScreen(

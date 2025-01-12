@@ -1,5 +1,6 @@
 package dev.bltucker.echojournal.settings
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -52,14 +53,6 @@ class SettingsViewModel @Inject constructor(
                 }
             }
         }
-
-        viewModelScope.launch {
-            topicsRepository.getAutoAppliedTopics().collect { defaultTopics ->
-                mutableModel.update {
-                    it.copy(defaultTopics = defaultTopics)
-                }
-            }
-        }
     }
 
     fun onUpdateDefaultMood(mood: Mood) {
@@ -71,6 +64,7 @@ class SettingsViewModel @Inject constructor(
     fun onToggleDefaultTopic(topic: Topic) {
         viewModelScope.launch {
             topicsRepository.toggleDefaultStatus(topic)
+            mutableModel.update { it.copy(isInTopicEditMode = false, editModeText = "") }
         }
     }
 
@@ -87,8 +81,24 @@ class SettingsViewModel @Inject constructor(
     }
     fun onCreateTopicClick(){
         val name = mutableModel.value.editModeText
+
+        if(name.isBlank()){
+            return
+        }
+
         viewModelScope.launch {
-            topicsRepository.createTopic(name = name, isDefault = true)
+            val nameExists = topicsRepository.topicNameExists(name)
+
+            if(nameExists){
+                return@launch
+            }
+
+            try{
+                topicsRepository.createTopic(name = name, isDefault = true)
+            } catch(ex: Exception){
+                Log.e("SettingsViewModel", "Error creating topic", ex)
+            }
+
             mutableModel.update {
                 it.copy(isInTopicEditMode = false, editModeText = "")
             }

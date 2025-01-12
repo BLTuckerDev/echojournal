@@ -1,5 +1,6 @@
 package dev.bltucker.echojournal.settings
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -12,10 +13,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -28,6 +32,7 @@ import dev.bltucker.echojournal.R
 import dev.bltucker.echojournal.common.Mood
 import dev.bltucker.echojournal.common.room.Topic
 import dev.bltucker.echojournal.common.theme.EchoJournalTheme
+import dev.bltucker.echojournal.common.theme.GradientColors
 import dev.bltucker.echojournal.settings.composables.DefaultMoodCard
 import dev.bltucker.echojournal.settings.composables.MyTopicsCard
 
@@ -72,6 +77,10 @@ private fun SettingsScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("Settings") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent
+                ),
+
                 navigationIcon = {
                     Icon(
                         painter = painterResource(R.drawable.icon_navigate_before),
@@ -80,10 +89,26 @@ private fun SettingsScreen(
                 }
             )
         },
-        modifier = modifier
+        modifier = modifier.background(
+            brush = Brush.verticalGradient(
+                colors = listOf(
+                    GradientColors.BgGradientStart,
+                    GradientColors.BgGradientEnd
+                ),
+                tileMode = TileMode.Clamp
+            )
+        ),
     ) { paddingValues ->
         Column(
             modifier = Modifier
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            GradientColors.BgGradientStart,
+                            GradientColors.BgGradientEnd
+                        ),
+                        tileMode = TileMode.Clamp
+                    ))
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp),

@@ -5,9 +5,11 @@ import dev.bltucker.echojournal.common.room.JournalEntry
 import dev.bltucker.echojournal.common.room.Topic
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.concurrent.TimeUnit
 
 data class HomeModel(val entries: List<JournalEntry> = emptyList(),
                      val topics: List<Topic> = emptyList(),
+                     val showRecordingBottomSheet: Boolean = false,
                      val recordingState: RecordingState = RecordingState()
 ){
 
@@ -55,11 +57,21 @@ sealed class DaySection(val sortOrder: Int) : Comparable<DaySection> {
 }
 
 data class RecordingState(
+    val hasStartedRecording: Boolean = false,
     val isRecording: Boolean = false,
     val isPaused: Boolean = false,
-    val recordingDuration: String = "00:00:00",
-    val showCheckmark: Boolean = false
-)
+    val elapsedSeconds: Int = 0,
+){
+    val recordingDuration: String
+        get() = formatDuration(elapsedSeconds)
+
+    private fun formatDuration(totalSeconds: Int): String {
+        val hours = TimeUnit.SECONDS.toHours(totalSeconds.toLong())
+        val minutes = TimeUnit.SECONDS.toMinutes(totalSeconds.toLong()) % 60
+        val seconds = totalSeconds % 60
+        return String.format("%02d:%02d:%02d", hours, minutes, seconds)
+    }
+}
 
 
 

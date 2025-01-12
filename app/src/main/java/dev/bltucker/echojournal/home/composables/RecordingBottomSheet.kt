@@ -16,6 +16,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.bltucker.echojournal.R
+import dev.bltucker.echojournal.common.theme.EchoJournalColors.Error95
 import dev.bltucker.echojournal.common.theme.EchoJournalTheme
 import dev.bltucker.echojournal.common.theme.GradientColors
 import dev.bltucker.echojournal.home.RecordingState
@@ -39,92 +40,186 @@ fun RecordingBottomSheet(
         containerColor = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(24.dp)
+        SheetContent(
+            state = state,
+            onStartRecording = onStartRecording,
+            onPauseRecording = onPauseRecording,
+            onResumeRecording = onResumeRecording,
+            onCancelRecording = onCancelRecording,
+            onFinishRecording = onFinishRecording,
+        )
+    }
+}
+
+@Composable
+private fun SheetContent(modifier: Modifier = Modifier,
+                         state: RecordingState,
+                         onStartRecording: () -> Unit = {},
+                         onPauseRecording: () -> Unit = {},
+                         onResumeRecording: () -> Unit = {},
+                         onCancelRecording: () -> Unit = {},
+                         onFinishRecording: () -> Unit = {}){
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        Text(
+            text = if (state.isPaused) "Recording paused" else "Recording your memories...",
+            style = MaterialTheme.typography.titleLarge,
+            textAlign = TextAlign.Center
+        )
+
+        Text(
+            text = state.recordingDuration,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = if (state.isPaused) "Recording paused" else "Recording your memories...",
-                style = MaterialTheme.typography.titleLarge,
-                textAlign = TextAlign.Center
-            )
-
-            Text(
-                text = state.recordingDuration,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
+            IconButton(
+                onClick = onCancelRecording,
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(color = Error95)
             ) {
-                // Cancel Button
-                IconButton(
-                    onClick = onCancelRecording,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.icon_close),
-                        contentDescription = "Cancel recording",
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                }
+                Icon(
+                    painter = painterResource(R.drawable.icon_close),
+                    contentDescription = "Cancel recording",
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
 
-                // Main Record/Pause Button
-                FloatingActionButton(
-                    onClick = if (state.isPaused) onResumeRecording else onPauseRecording,
-                    modifier = Modifier.size(72.dp),
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    shape = CircleShape
-                ) {
-                    if (state.showCheckmark) {
+            FloatingActionButton(
+                onClick = if (state.isPaused) onResumeRecording else onPauseRecording,
+                modifier = Modifier.size(72.dp),
+                containerColor = MaterialTheme.colorScheme.primary,
+                shape = CircleShape
+            ) {
+                if (state.isRecording) {
+                    IconButton(onClick = onFinishRecording) {
                         Icon(
                             painter = painterResource(R.drawable.icon_check),
                             contentDescription = "Finish recording",
                             modifier = Modifier.size(32.dp),
                             tint = Color.White
-                        )
-                    } else {
-                        Icon(
-                            painter = painterResource(
-                                if (state.isPaused) R.drawable.icon_mic
-                                else R.drawable.icon_pause
-                            ),
-                            contentDescription = if (state.isPaused) "Resume recording"
-                            else "Pause recording",
-                            modifier = Modifier.size(32.dp),
-                            tint = Color.White
-                        )
-                    }
-                }
-
-                // Finish/Checkmark Button
-                if (state.isRecording && !state.showCheckmark) {
-                    IconButton(
-                        onClick = onFinishRecording,
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(CircleShape)
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.icon_check),
-                            contentDescription = "Finish recording",
-                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 } else {
-                    Spacer(modifier = Modifier.size(48.dp))
+                    IconButton(onClick = {
+                        if(state.hasStartedRecording){
+                            onResumeRecording()
+                        } else {
+                            onStartRecording()
+                        }
+                    }) {
+                        Icon(
+                            painter = painterResource(R.drawable.icon_mic),
+                            contentDescription = "start recording",
+                            modifier = Modifier.size(32.dp),
+                            tint = Color.White
+                        )
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            if (state.isRecording) {
+                IconButton(
+                    onClick = onPauseRecording,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(color = Color(0xFFEEF0FF))
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.icon_pause),
+                        contentDescription = "pause recording",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            } else if(state.isPaused){
+                IconButton(
+                    onClick = onFinishRecording,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(color = Color(0xFFEEF0FF))
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.icon_check),
+                        contentDescription = "Finish recording",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            } else {
+                Spacer(modifier = Modifier.width(48.dp))
+            }
         }
+
+        Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SheetContentPreview(){
+    EchoJournalTheme {
+        SheetContent(
+            state = RecordingState(
+                hasStartedRecording = true,
+                isRecording = true,
+                isPaused = false,
+                elapsedSeconds = 0),
+            onStartRecording = {},
+            onPauseRecording = {},
+            onResumeRecording = {},
+            onCancelRecording = {},
+            onFinishRecording = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SheetContentBeforeStartingPreview(){
+    EchoJournalTheme {
+        SheetContent(
+            state = RecordingState(
+                hasStartedRecording = false,
+                isRecording = false,
+                isPaused = false,
+                elapsedSeconds = 0),
+            onStartRecording = {},
+            onPauseRecording = {},
+            onResumeRecording = {},
+            onCancelRecording = {},
+            onFinishRecording = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SheetContentPausedPreview(){
+    EchoJournalTheme {
+        SheetContent(
+            state = RecordingState(
+                hasStartedRecording = true,
+                isRecording = false,
+                isPaused = true,
+                elapsedSeconds = 0),
+            onStartRecording = {},
+            onPauseRecording = {},
+            onResumeRecording = {},
+            onCancelRecording = {},
+            onFinishRecording = {}
+        )
     }
 }

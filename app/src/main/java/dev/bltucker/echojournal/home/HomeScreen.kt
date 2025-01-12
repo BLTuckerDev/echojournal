@@ -54,7 +54,13 @@ fun NavGraphBuilder.homeScreen(onNavigateToSettings: () -> Unit) {
             modifier = Modifier.fillMaxSize(),
             model = model,
             onNavigateToSettings = onNavigateToSettings,
-            onClickCreateEntryFab = viewModel::onClickCreateEntry
+            onClickCreateEntryFab = viewModel::onClickCreateEntry,
+
+            onStartRecording = viewModel::onStartRecording,
+            onPauseRecording = viewModel::onPauseRecording,
+            onResumeRecording = viewModel::onResumeRecording,
+            onCancelRecording = viewModel::onCancelRecording,
+            onFinishRecording = viewModel::onFinishRecording
         )
     }
 }
@@ -66,6 +72,12 @@ fun HomeScreen(
     model: HomeModel,
     onNavigateToSettings: () -> Unit,
     onClickCreateEntryFab: () -> Unit,
+
+    onStartRecording: () -> Unit = {},
+    onPauseRecording: () -> Unit = {},
+    onResumeRecording: () -> Unit = {},
+    onCancelRecording: () -> Unit = {},
+    onFinishRecording: () -> Unit = {}
 ) {
     val dateTimeFormatter = remember { DateTimeFormatter.ofPattern("EEEE, MMM dd") }
 
@@ -132,20 +144,20 @@ fun HomeScreen(
                         items = entries,
                         onPlayPauseClick = { /* TODO */ },
                         onShowMoreClick = { /* TODO */ },
-                        onTopicClick = { /* TODO */ }
+                        onTopicClick = { /* TODO */ },
                     )
                 }
             }
         }
 
-        if (model.recordingState.isRecording) {
+        if (model.showRecordingBottomSheet) {
             RecordingBottomSheet(
                 state = model.recordingState,
-                onStartRecording = { /* TODO: viewModel.startRecording() */ },
-                onPauseRecording = { /* TODO: viewModel.pauseRecording() */ },
-                onResumeRecording = { /* TODO: viewModel.resumeRecording() */ },
-                onCancelRecording = { /* TODO: viewModel.cancelRecording() */ },
-                onFinishRecording = { /* TODO: viewModel.finishRecording() */ }
+                onStartRecording = onStartRecording,
+                onPauseRecording = onPauseRecording,
+                onResumeRecording = onResumeRecording,
+                onCancelRecording = onCancelRecording,
+                onFinishRecording = onFinishRecording
             )
         }
 

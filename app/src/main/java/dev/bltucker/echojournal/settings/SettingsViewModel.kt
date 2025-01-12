@@ -74,7 +74,7 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun onEnableEditTopicMode(){
+    fun onAddTopicClick(){
         mutableModel.update {
             it.copy(isInTopicEditMode = true)
         }
@@ -85,13 +85,19 @@ class SettingsViewModel @Inject constructor(
             it.copy(isInTopicEditMode = false, editModeText = "")
         }
     }
-    fun onAddTopicClick(){
+    fun onCreateTopicClick(){
         val name = mutableModel.value.editModeText
         viewModelScope.launch {
             topicsRepository.createTopic(name = name, isDefault = true)
             mutableModel.update {
                 it.copy(isInTopicEditMode = false, editModeText = "")
             }
+        }
+    }
+
+    fun onUpdateEditTopicText(text: String){
+        mutableModel.update {
+            it.copy(editModeText = text)
         }
     }
 }

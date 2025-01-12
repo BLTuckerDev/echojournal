@@ -47,7 +47,11 @@ fun NavGraphBuilder.settingsScreen() {
             modifier = Modifier.fillMaxSize(),
             model = model,
             onDefaultMoodSelected = viewModel::onUpdateDefaultMood,
-            onToggleDefaultTopic = viewModel::onToggleDefaultTopic
+            onToggleDefaultTopic = viewModel::onToggleDefaultTopic,
+            onUpdateEditModeText = viewModel::onUpdateEditTopicText,
+            onClearEditTopicMode = viewModel::onClearEditTopicMode,
+            onAddTopicClick = viewModel::onAddTopicClick,
+            onCreateTopicClick = viewModel::onCreateTopicClick
         )
     }
 }
@@ -59,8 +63,10 @@ private fun SettingsScreen(
     model: SettingsModel,
     onDefaultMoodSelected: (Mood) -> Unit,
     onToggleDefaultTopic: (Topic) -> Unit,
-    onEnableEditTopicMode: () -> Unit = {},
     onUpdateEditModeText: (String) -> Unit = {},
+    onClearEditTopicMode: () -> Unit = {},
+    onAddTopicClick: () -> Unit = {},
+    onCreateTopicClick: () -> Unit = {},
 ) {
     Scaffold(
         topBar = {
@@ -98,8 +104,10 @@ private fun SettingsScreen(
                 availableTopics = model.availableTopics,
                 defaultTopics = model.defaultTopics,
                 onTopicDefaultToggled = onToggleDefaultTopic,
-                onAddTopicClick = onEnableEditTopicMode,
-                onUpdateEditModeText = onUpdateEditModeText
+                onUpdateEditModeText = onUpdateEditModeText,
+                onDismissTopicDropDown = onClearEditTopicMode,
+                onAddTopicClick = onAddTopicClick,
+                onCreateTopic = onCreateTopicClick,
             )
         }
     }

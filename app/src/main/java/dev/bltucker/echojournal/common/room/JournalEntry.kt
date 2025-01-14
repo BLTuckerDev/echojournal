@@ -20,6 +20,4 @@ data class JournalEntry(
     val transcription: String?,
 
     val mood: Mood,
-
-    val lastModifiedAt: Instant = Instant.now()
 )

@@ -6,6 +6,7 @@ import dev.bltucker.echojournal.common.room.Topic
 import java.io.File
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
 
 data class HomeModel(val entries: List<JournalEntry> = emptyList(),
@@ -21,7 +22,7 @@ data class HomeModel(val entries: List<JournalEntry> = emptyList(),
     private fun groupEntriesByDay(entries: List<JournalEntry>): Map<DaySection, List<JournalEntryCardState>> {
         val today = LocalDate.now()
         val yesterday = today.minusDays(1)
-
+        val formatter = DateTimeFormatter.ofPattern("HH:mm")
         return entries
             .groupBy { entry ->
                 val entryDate = entry.createdAt.atZone(ZoneId.systemDefault()).toLocalDate()
@@ -35,7 +36,7 @@ data class HomeModel(val entries: List<JournalEntry> = emptyList(),
                 entriesForDay.map { entry ->
                     JournalEntryCardState(
                         title = entry.title,
-                        time = entry.createdAt.atZone(ZoneId.systemDefault()).toLocalTime().toString(),
+                        time = entry.createdAt.atZone(ZoneId.systemDefault()).toLocalTime().format(formatter),
                         description = entry.description,
                         topics = emptyList(), //TODO need topics
                         audioDuration = "${entry.durationSeconds / 60}:${String.format("%02d", entry.durationSeconds % 60)}/${entry.durationSeconds / 60}:${String.format("%02d", entry.durationSeconds % 60)}",

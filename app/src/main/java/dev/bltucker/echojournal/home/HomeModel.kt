@@ -3,6 +3,7 @@ package dev.bltucker.echojournal.home
 import dev.bltucker.echojournal.common.Mood
 import dev.bltucker.echojournal.common.room.JournalEntry
 import dev.bltucker.echojournal.common.room.Topic
+import java.io.File
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.concurrent.TimeUnit
@@ -11,7 +12,8 @@ data class HomeModel(val entries: List<JournalEntry> = emptyList(),
                      val topics: List<Topic> = emptyList(),
                      val showRecordingBottomSheet: Boolean = false,
                      val recordingState: RecordingState = RecordingState(),
-                     val permissionState: PermissionState = PermissionState()
+                     val permissionState: PermissionState = PermissionState(),
+                     val finishedRecording: Boolean = false,
 ){
 
     val entriesByDay: Map<DaySection, List<JournalEntryCardState>> = groupEntriesByDay(entries)
@@ -50,7 +52,8 @@ data class HomeModel(val entries: List<JournalEntry> = emptyList(),
 
 data class PermissionState(
     val hasAudioPermission: Boolean = false,
-    val shouldShowPermissionRequest: Boolean = false
+    val shouldShowPermissionRequest: Boolean = false,
+    val userHasRepeatedlyDenied: Boolean = false
 )
 
 sealed class DaySection(val sortOrder: Int) : Comparable<DaySection> {
@@ -66,6 +69,7 @@ data class RecordingState(
     val isRecording: Boolean = false,
     val isPaused: Boolean = false,
     val elapsedSeconds: Int = 0,
+    val currentRecordingFile: File? = null
 ){
     val recordingDuration: String
         get() = formatDuration(elapsedSeconds)

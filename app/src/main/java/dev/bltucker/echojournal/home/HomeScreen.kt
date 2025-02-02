@@ -1,7 +1,11 @@
 package dev.bltucker.echojournal.home
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
+import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -21,6 +25,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -28,12 +33,15 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -43,6 +51,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleStartEffect
@@ -67,11 +76,19 @@ fun NavGraphBuilder.homeScreen(onNavigateToSettings: () -> Unit) {
         val viewModel = hiltViewModel<HomeScreenViewModel>()
         val model by viewModel.observableModel.collectAsStateWithLifecycle()
         val context = LocalContext.current
+        val activity = LocalActivity.current
 
+        var showSettingsDialog by remember { mutableStateOf(false) }
         val permissionLauncher = rememberLauncherForActivityResult(
             ActivityResultContracts.RequestPermission()
         ) { isGranted ->
-            viewModel.updatePermissionState(isGranted)
+            val canShowRationale = activity?.let {
+                ActivityCompat.shouldShowRequestPermissionRationale(
+                    activity,
+                    Manifest.permission.RECORD_AUDIO
+                )
+            } ?: false
+            viewModel.updatePermissionState(isGranted, canShowRationale)
         }
 
         LaunchedEffect(Unit) {
@@ -79,13 +96,28 @@ fun NavGraphBuilder.homeScreen(onNavigateToSettings: () -> Unit) {
                 context,
                 Manifest.permission.RECORD_AUDIO
             ) == PackageManager.PERMISSION_GRANTED
-            viewModel.updatePermissionState(hasPermission)
+            viewModel.initializePermissionState(hasPermission,)
         }
 
+        LaunchedEffect(model.permissionState.shouldShowPermissionRequest) {
+            if (model.permissionState.shouldShowPermissionRequest) {
+                if (model.permissionState.userHasRepeatedlyDenied) {
+                    showSettingsDialog = true
+                } else {
+                    permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                }
+                viewModel.onShowRequestHandled()
+            }
+        }
 
         LifecycleStartEffect(Unit) {
             viewModel.onStart()
             onStopOrDispose { }
+        }
+
+
+        if(showSettingsDialog){
+            PermissionAlertDialog(onDismiss = { showSettingsDialog = false })
         }
 
         HomeScreen(
@@ -100,7 +132,14 @@ fun NavGraphBuilder.homeScreen(onNavigateToSettings: () -> Unit) {
             onCancelRecording = viewModel::onCancelRecording,
             onFinishRecording = viewModel::onFinishRecording,
             onRequestPermission = {
-                permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                if(model.permissionState.userHasRepeatedlyDenied){
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                        data = Uri.fromParts("package", context.packageName, null)
+                    }
+                    context.startActivity(intent)
+                } else {
+                    permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                }
             }
         )
     }
@@ -208,7 +247,7 @@ private fun HomeScreenContent(
 
     LazyColumn(modifier = modifier) {
 
-        if(model.permissionState.shouldShowPermissionRequest){
+        if(!model.permissionState.hasAudioPermission){
             item {
                 PermissionBanner(
                     modifier = Modifier.fillMaxWidth(),
@@ -256,7 +295,7 @@ private fun EmptyHomeScreenContent(
     ) {
 
         AnimatedVisibility(
-            visible = permissionState.shouldShowPermissionRequest,
+            visible = !permissionState.hasAudioPermission,
             enter = slideInVertically() + fadeIn(),
             exit = slideOutVertically() + fadeOut()
         ) {
@@ -282,6 +321,38 @@ private fun EmptyHomeScreenContent(
 
         Spacer(modifier = Modifier.weight(1F))
     }
+}
+
+@Composable
+private fun PermissionAlertDialog(onDismiss: () -> Unit){
+    val context = LocalContext.current
+
+    AlertDialog(
+        onDismissRequest = { onDismiss() },
+        title = { Text("Permission Required") },
+        text = {
+            Text("Audio recording permission is required for this feature. " +
+                    "Please enable it in app settings.")
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    onDismiss()
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                        data = Uri.fromParts("package", context.packageName, null)
+                    }
+                    context.startActivity(intent)
+                }
+            ) {
+                Text("Open Settings")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = { onDismiss() }) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 @Preview

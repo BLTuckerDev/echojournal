@@ -1,5 +1,6 @@
 package dev.bltucker.echojournal.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,9 +25,6 @@ class HomeScreenViewModel @Inject constructor(
     private val audioRecorder: AudioRecorder,) : ViewModel() {
 
     private val mutableModel = MutableStateFlow(HomeModel())
-    private var currentRecordingFile: File? = null //TODO move into the model
-
-
     val observableModel: StateFlow<HomeModel> = mutableModel
 
     private var recordingTimeJob: Job? = null
@@ -62,13 +60,11 @@ class HomeScreenViewModel @Inject constructor(
     }
 
     fun onClickCreateEntry() {
-        if (!mutableModel.value.permissionState.hasAudioPermission) {
-            mutableModel.update { currentModel ->
-                currentModel.copy(
-                    permissionState = currentModel.permissionState.copy(
-                        shouldShowPermissionRequest = true
-                    )
-                )
+        val hasAudioPermission = mutableModel.value.permissionState.hasAudioPermission
+
+        if (!hasAudioPermission) {
+            mutableModel.update {
+                it.copy(permissionState = it.permissionState.copy(shouldShowPermissionRequest = true))
             }
             return
         }
@@ -82,13 +78,11 @@ class HomeScreenViewModel @Inject constructor(
     }
 
     fun onStartRecording() {
-        if (currentRecordingFile == null) {
-            val fileName = "audio_${System.currentTimeMillis()}.wav"
-            currentRecordingFile = File(audioDirectory, fileName)
-            currentRecordingFile?.parentFile?.mkdirs()
-        }
+        val fileName = "audio_${System.currentTimeMillis()}.wav"
+        val currentRecordingFile = File(audioDirectory, fileName)
+        currentRecordingFile.parentFile?.mkdirs()
 
-        currentRecordingFile?.let { file ->
+        currentRecordingFile.let { file ->
             audioRecorder.startRecording(file, viewModelScope)
         }
 
@@ -96,7 +90,8 @@ class HomeScreenViewModel @Inject constructor(
             it.copy(recordingState = it.recordingState.copy(
                 hasStartedRecording = true,
                 isRecording = true,
-                isPaused = false
+                isPaused = false,
+                currentRecordingFile = currentRecordingFile
             ))
         }
         startTimeTracking()
@@ -126,8 +121,8 @@ class HomeScreenViewModel @Inject constructor(
 
     fun onCancelRecording() {
         audioRecorder.stopRecording()
+        val currentRecordingFile = mutableModel.value.recordingState.currentRecordingFile
         currentRecordingFile?.delete()
-        currentRecordingFile = null
 
         mutableModel.update {
             it.copy(
@@ -175,16 +170,34 @@ class HomeScreenViewModel @Inject constructor(
         audioRecorder.stopRecording()
     }
 
-    fun updatePermissionState(hasPermission: Boolean) {
+    fun updatePermissionState(
+        hasPermission: Boolean,
+        canShowRationale: Boolean
+    ) {
         mutableModel.update { currentModel ->
             currentModel.copy(
                 permissionState = currentModel.permissionState.copy(
                     hasAudioPermission = hasPermission,
-                    // Only show the banner when we don't have permission
-                    shouldShowPermissionRequest = !hasPermission
+                    shouldShowPermissionRequest = false,
+                    userHasRepeatedlyDenied = !hasPermission && !canShowRationale
                 )
             )
         }
+    }
+
+    fun initializePermissionState(hasPermissionState: Boolean){
+        mutableModel.update { currentModel ->
+            currentModel.copy(
+                permissionState = currentModel.permissionState.copy(
+                    hasAudioPermission = hasPermissionState,
+                    userHasRepeatedlyDenied = false
+                )
+            )
+        }
+    }
+
+    fun onShowRequestHandled() {
+        mutableModel.update { it.copy(permissionState = it.permissionState.copy(shouldShowPermissionRequest = false)) }
     }
 
 }

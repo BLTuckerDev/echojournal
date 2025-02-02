@@ -185,12 +185,6 @@ class HomeScreenViewModel @Inject constructor(
                 )
             )
         }
-
-        // If we just got permission and the recording sheet was trying to show,
-        // we can now actually show it
-        if (hasPermission && !mutableModel.value.showRecordingBottomSheet) {
-            onClickCreateEntry()
-        }
     }
 
 }

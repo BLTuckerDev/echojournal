@@ -13,7 +13,7 @@ data class HomeModel(val entries: List<JournalEntry> = emptyList(),
                      val showRecordingBottomSheet: Boolean = false,
                      val recordingState: RecordingState = RecordingState(),
                      val permissionState: PermissionState = PermissionState(),
-                     val finishedRecording: Boolean = false,
+                     val finishedRecordingId: String? = null,
 ){
 
     val entriesByDay: Map<DaySection, List<JournalEntryCardState>> = groupEntriesByDay(entries)

@@ -71,7 +71,8 @@ import java.time.format.DateTimeFormatter
 
 const val HOME_SCREEN_ROUTE = "home"
 
-fun NavGraphBuilder.homeScreen(onNavigateToSettings: () -> Unit) {
+fun NavGraphBuilder.homeScreen(onNavigateToSettings: () -> Unit,
+                               onNavigateToCreateEntry: (String) -> Unit) {
     composable(route = HOME_SCREEN_ROUTE) {
         val viewModel = hiltViewModel<HomeScreenViewModel>()
         val model by viewModel.observableModel.collectAsStateWithLifecycle()
@@ -89,6 +90,14 @@ fun NavGraphBuilder.homeScreen(onNavigateToSettings: () -> Unit) {
                 )
             } ?: false
             viewModel.updatePermissionState(isGranted, canShowRationale)
+        }
+
+        LaunchedEffect(model.finishedRecordingId){
+            val finishedRecordingId = model.finishedRecordingId
+            if(finishedRecordingId!= null){
+                onNavigateToCreateEntry(finishedRecordingId)
+                viewModel.onHandledFinishedRecording()
+            }
         }
 
         LaunchedEffect(Unit) {

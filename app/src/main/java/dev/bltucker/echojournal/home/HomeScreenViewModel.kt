@@ -6,11 +6,15 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.bltucker.echojournal.common.AudioRecorder
 import dev.bltucker.echojournal.common.JournalRepository
+import dev.bltucker.echojournal.common.Mood
+import dev.bltucker.echojournal.common.MoodRepository
 import dev.bltucker.echojournal.common.TopicsRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
@@ -21,6 +25,7 @@ import javax.inject.Named
 class HomeScreenViewModel @Inject constructor(
     private val journalRepository: JournalRepository,
     private val topicRepository: TopicsRepository,
+    private val moodRepository: MoodRepository,
     @Named("AudioDirectory") private val audioDirectory: File,
     private val audioRecorder: AudioRecorder,) : ViewModel() {
 
@@ -134,12 +139,25 @@ class HomeScreenViewModel @Inject constructor(
     }
 
     fun onFinishRecording() {
-        audioRecorder.stopRecording()
-        // Keep currentRecordingFile for saving the entry
-        // It will be used when creating the JournalEntry
+        viewModelScope.launch {
+            audioRecorder.stopRecording()
+            stopTimeTracking()
 
-        stopTimeTracking()
-        // Navigate to create entry screen with audio file path
+            val defaultMood = moodRepository.defaultMood.firstOrNull() ?: Mood.NEUTRAL
+
+            val entryId = journalRepository.createJournalEntry(
+                audioFilePath = mutableModel.value.recordingState.currentRecordingFile!!.absolutePath,
+                durationSeconds = mutableModel.value.recordingState.elapsedSeconds,
+                defaultMood = defaultMood
+            )
+
+
+            mutableModel.update {
+                it.copy(finishedRecordingId = entryId,
+                    showRecordingBottomSheet = false,
+                    recordingState = RecordingState())
+            }
+        }
     }
 
     private fun startTimeTracking() {
@@ -198,6 +216,10 @@ class HomeScreenViewModel @Inject constructor(
 
     fun onShowRequestHandled() {
         mutableModel.update { it.copy(permissionState = it.permissionState.copy(shouldShowPermissionRequest = false)) }
+    }
+
+    fun onHandledFinishedRecording() {
+        mutableModel.update { it.copy(finishedRecordingId = null) }
     }
 
 }

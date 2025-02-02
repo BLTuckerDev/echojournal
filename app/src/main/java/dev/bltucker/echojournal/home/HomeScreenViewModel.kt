@@ -3,6 +3,7 @@ package dev.bltucker.echojournal.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.bltucker.echojournal.common.AudioRecorder
 import dev.bltucker.echojournal.common.JournalRepository
 import dev.bltucker.echojournal.common.TopicsRepository
 import kotlinx.coroutines.Job
@@ -11,14 +12,20 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
+import javax.inject.Named
 
 @HiltViewModel
 class HomeScreenViewModel @Inject constructor(
     private val journalRepository: JournalRepository,
-    private val topicRepository: TopicsRepository,) : ViewModel() {
+    private val topicRepository: TopicsRepository,
+    @Named("AudioDirectory") private val audioDirectory: File,
+    private val audioRecorder: AudioRecorder,) : ViewModel() {
 
     private val mutableModel = MutableStateFlow(HomeModel())
+    private var currentRecordingFile: File? = null //TODO move into the model
+
 
     val observableModel: StateFlow<HomeModel> = mutableModel
 
@@ -49,39 +56,73 @@ class HomeScreenViewModel @Inject constructor(
             it.copy(showRecordingBottomSheet = true, recordingState = it.recordingState.copy(isRecording = true, hasStartedRecording = true, isPaused = false))
         }
         startTimeTracking()
+        onStartRecording()
     }
 
     fun onStartRecording() {
+        if (currentRecordingFile == null) {
+            val fileName = "audio_${System.currentTimeMillis()}.wav"
+            currentRecordingFile = File(audioDirectory, fileName)
+            currentRecordingFile?.parentFile?.mkdirs()
+        }
+
+        currentRecordingFile?.let { file ->
+            audioRecorder.startRecording(file, viewModelScope)
+        }
+
         mutableModel.update {
-            it.copy(recordingState = it.recordingState.copy(hasStartedRecording = true, isRecording = true, isPaused = false))
+            it.copy(recordingState = it.recordingState.copy(
+                hasStartedRecording = true,
+                isRecording = true,
+                isPaused = false
+            ))
         }
         startTimeTracking()
     }
 
     fun onPauseRecording() {
+        audioRecorder.pauseRecording()
         mutableModel.update {
-            it.copy(recordingState = it.recordingState.copy(isPaused = true, isRecording = false))
+            it.copy(recordingState = it.recordingState.copy(
+                isPaused = true,
+                isRecording = false
+            ))
         }
         stopTimeTracking()
     }
 
     fun onResumeRecording() {
+        audioRecorder.resumeRecording()
         mutableModel.update {
-            it.copy(recordingState = it.recordingState.copy(isPaused = false, isRecording = true))
+            it.copy(recordingState = it.recordingState.copy(
+                isPaused = false,
+                isRecording = true
+            ))
         }
         startTimeTracking()
     }
 
     fun onCancelRecording() {
+        audioRecorder.stopRecording()
+        currentRecordingFile?.delete()
+        currentRecordingFile = null
+
         mutableModel.update {
-            it.copy(showRecordingBottomSheet = false, recordingState = RecordingState())
+            it.copy(
+                showRecordingBottomSheet = false,
+                recordingState = RecordingState()
+            )
         }
         stopTimeTracking()
     }
 
     fun onFinishRecording() {
-        //TODO finish it
+        audioRecorder.stopRecording()
+        // Keep currentRecordingFile for saving the entry
+        // It will be used when creating the JournalEntry
+
         stopTimeTracking()
+        // Navigate to create entry screen with audio file path
     }
 
     private fun startTimeTracking() {
@@ -109,6 +150,7 @@ class HomeScreenViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         stopTimeTracking()
+        audioRecorder.stopRecording()
     }
 
 }

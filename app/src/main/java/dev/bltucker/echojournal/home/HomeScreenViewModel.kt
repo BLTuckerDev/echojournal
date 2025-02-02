@@ -41,6 +41,16 @@ class HomeScreenViewModel @Inject constructor(
         loadAndObserveEntries()
     }
 
+    fun dismissPermissionRequest() {
+        mutableModel.update { currentModel ->
+            currentModel.copy(
+                permissionState = currentModel.permissionState.copy(
+                    shouldShowPermissionRequest = false
+                )
+            )
+        }
+    }
+
     private fun loadAndObserveEntries(){
         viewModelScope.launch {
             journalRepository.getAllJournalEntries().collect{ entries ->
@@ -52,6 +62,18 @@ class HomeScreenViewModel @Inject constructor(
     }
 
     fun onClickCreateEntry() {
+        if (!mutableModel.value.permissionState.hasAudioPermission) {
+            mutableModel.update { currentModel ->
+                currentModel.copy(
+                    permissionState = currentModel.permissionState.copy(
+                        shouldShowPermissionRequest = true
+                    )
+                )
+            }
+            return
+        }
+
+
         mutableModel.update {
             it.copy(showRecordingBottomSheet = true, recordingState = it.recordingState.copy(isRecording = true, hasStartedRecording = true, isPaused = false))
         }
@@ -151,6 +173,24 @@ class HomeScreenViewModel @Inject constructor(
         super.onCleared()
         stopTimeTracking()
         audioRecorder.stopRecording()
+    }
+
+    fun updatePermissionState(hasPermission: Boolean) {
+        mutableModel.update { currentModel ->
+            currentModel.copy(
+                permissionState = currentModel.permissionState.copy(
+                    hasAudioPermission = hasPermission,
+                    // Only show the banner when we don't have permission
+                    shouldShowPermissionRequest = !hasPermission
+                )
+            )
+        }
+
+        // If we just got permission and the recording sheet was trying to show,
+        // we can now actually show it
+        if (hasPermission && !mutableModel.value.showRecordingBottomSheet) {
+            onClickCreateEntry()
+        }
     }
 
 }

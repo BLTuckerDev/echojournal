@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.provider.Settings
+import android.util.Log
 import androidx.activity.compose.LocalActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -29,6 +30,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -86,6 +88,8 @@ fun NavGraphBuilder.homeScreen(onNavigateToSettings: () -> Unit,
         val model by viewModel.observableModel.collectAsStateWithLifecycle()
         val context = LocalContext.current
         val activity = LocalActivity.current
+
+        Log.d("MODEL_DEBUG", "model: ${model.permissionState}")
 
         var showSettingsDialog by remember { mutableStateOf(false) }
         val permissionLauncher = rememberLauncherForActivityResult(
@@ -241,7 +245,11 @@ fun HomeScreen(
         }
     ) { paddingValues ->
 
-        if (model.entries.isEmpty()) {
+        if(model.isLoading){
+            Box(modifier = Modifier.fillMaxSize()){
+                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            }
+        }else if (model.entries.isEmpty()) {
             EmptyHomeScreenContent(
                 modifier = Modifier
                     .fillMaxSize()
@@ -306,7 +314,7 @@ private fun HomeScreenContent(
     LazyColumn(modifier = modifier) {
 
         item{
-            Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+            Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Start){
 
@@ -462,6 +470,7 @@ private fun PermissionAlertDialog(onDismiss: () -> Unit){
 @Composable
 private fun HomeScreenPreview() {
     val homeModel = HomeModel(
+        isLoading = false,
         entries = listOf(
             JournalEntry(
                 title = "Entry 1",

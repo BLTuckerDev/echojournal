@@ -11,7 +11,8 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
-data class HomeModel(val entries: List<JournalEntry> = emptyList(),
+data class HomeModel(val isLoading: Boolean,
+                     val entries: List<JournalEntry> = emptyList(),
                      val topicsByEntry: Map<String, List<Topic>> = emptyMap(),
                      val topics: List<Topic> = emptyList(),
                      val selectedMoods: Set<Mood> = emptySet(),
@@ -78,7 +79,7 @@ data class HomeModel(val entries: List<JournalEntry> = emptyList(),
 }
 
 data class PermissionState(
-    val hasAudioPermission: Boolean = false,
+    val hasAudioPermission: Boolean = true,//assume true and wait for reality to upate us. prevents the UI from blinking
     val shouldShowPermissionRequest: Boolean = false,
     val userHasRepeatedlyDenied: Boolean = false
 )

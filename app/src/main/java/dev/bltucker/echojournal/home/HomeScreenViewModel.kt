@@ -35,7 +35,7 @@ class HomeScreenViewModel @Inject constructor(
     private val audioPlayer: AudioPlayer,
     ) : ViewModel() {
 
-    private val mutableModel = MutableStateFlow(HomeModel())
+    private val mutableModel = MutableStateFlow(HomeModel(isLoading = true))
     val observableModel: StateFlow<HomeModel> = mutableModel
 
     private var recordingTimeJob: Job? = null
@@ -71,6 +71,7 @@ class HomeScreenViewModel @Inject constructor(
 
     private fun loadAndObserveEntries(){
         viewModelScope.launch {
+            delay(600) //artificial delay to make initial transition from loading to loaded look nicer
             journalRepository.getAllJournalEntries().collect{ entries ->
 
                 val topicsForEntriesMap = entries.map { it.id }
@@ -79,7 +80,7 @@ class HomeScreenViewModel @Inject constructor(
                     }
 
                 mutableModel.update {
-                    it.copy(entries = entries, topicsByEntry = topicsForEntriesMap)
+                    it.copy(entries = entries, topicsByEntry = topicsForEntriesMap, isLoading = false)
                 }
             }
         }

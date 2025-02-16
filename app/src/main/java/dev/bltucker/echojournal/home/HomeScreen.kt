@@ -16,7 +16,9 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -64,6 +66,8 @@ import dev.bltucker.echojournal.common.room.JournalEntry
 import dev.bltucker.echojournal.common.theme.EchoJournalTheme
 import dev.bltucker.echojournal.common.theme.GradientColors
 import dev.bltucker.echojournal.home.composables.JournalListSection
+import dev.bltucker.echojournal.home.composables.MoodFilterButton
+import dev.bltucker.echojournal.home.composables.MoodFilterDropdown
 import dev.bltucker.echojournal.home.composables.PermissionBanner
 import dev.bltucker.echojournal.home.composables.RecordingBottomSheet
 import java.time.Instant
@@ -150,7 +154,11 @@ fun NavGraphBuilder.homeScreen(onNavigateToSettings: () -> Unit,
                 } else {
                     permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                 }
-            }
+            },
+            onClickMoodFilterButton = viewModel::onMoodFilterClick,
+            onClearMoodFilterClick = viewModel::onClearMoodFilter,
+            onMoodSelected = viewModel::onMoodSelected,
+            onDismissMoodFilter = viewModel::onDismissMoodFilter,
         )
     }
 }
@@ -170,6 +178,11 @@ fun HomeScreen(
     onFinishRecording: () -> Unit = {},
     onRequestPermission: () -> Unit = {},
     onPlayPauseClick: (String) -> Unit,
+
+    onClickMoodFilterButton: () -> Unit,
+    onClearMoodFilterClick: () -> Unit,
+    onMoodSelected: (Mood) -> Unit,
+    onDismissMoodFilter: () -> Unit,
 ) {
 
     Scaffold(modifier = modifier
@@ -231,6 +244,12 @@ fun HomeScreen(
                 model = model,
                 onRequestPermission = onRequestPermission,
                 onPlayPauseClick = onPlayPauseClick,
+                onClickMoodFilterButton = onClickMoodFilterButton,
+                onClearMoodFilterClick = onClearMoodFilterClick,
+                onMoodSelected = onMoodSelected,
+                onDismissMoodFilter = onDismissMoodFilter,
+
+
             )
         }
 
@@ -253,12 +272,43 @@ private fun HomeScreenContent(
     model: HomeModel,
     onRequestPermission: () -> Unit,
     onPlayPauseClick: (String) -> Unit,
+
+    onClickMoodFilterButton: () -> Unit,
+    onClearMoodFilterClick: () -> Unit,
+    onMoodSelected: (Mood) -> Unit,
+    onDismissMoodFilter: () -> Unit,
 ) {
 
     val dateTimeFormatter = remember { DateTimeFormatter.ofPattern("EEEE, MMM dd") }
 
 
     LazyColumn(modifier = modifier) {
+
+        item{
+            Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start){
+
+                Box(){
+                    MoodFilterButton(
+                        selectedMoods = model.selectedMoods,
+                        onClick = onClickMoodFilterButton,
+                        onClickClearFilter = onClearMoodFilterClick
+                    )
+
+                    MoodFilterDropdown(
+                        selectedMoods = model.selectedMoods,
+                        onMoodSelected = { mood ->
+                            onMoodSelected(mood)
+                        },
+                        expanded = model.showMoodFilterMenu,
+                        onDismiss = { onDismissMoodFilter() }
+                    )
+                }
+
+
+            }
+        }
 
         if(!model.permissionState.hasAudioPermission){
             item {
@@ -392,6 +442,10 @@ private fun HomeScreenPreview() {
             onClickCreateEntryFab = {},
             onRequestPermission = {},
             onPlayPauseClick = {},
+            onClickMoodFilterButton = {},
+            onClearMoodFilterClick = {},
+            onMoodSelected = {},
+            onDismissMoodFilter = {},
         )
     }
 }

@@ -168,7 +168,8 @@ private fun AudioPlayer(
         ) {
             AudioWaveform(
                 isPlaying = isPlaying,
-                moodColor = moodColor
+                moodColor = moodColor,
+                progress = progress
             )
         }
 
@@ -180,13 +181,13 @@ private fun AudioPlayer(
     }
 }
 
-
 @Composable
 private fun AudioWaveform(
     modifier: Modifier = Modifier,
     isPlaying: Boolean,
+    progress: Float,
     moodColor: Color,
-    barCount: Int = 20
+    barCount: Int = 30
 ) {
     val baseHeights = remember {
         List(barCount) { 0.3f + (Random.nextFloat() * 0.4f) }
@@ -196,7 +197,7 @@ private fun AudioWaveform(
         val baseHeight = baseHeights[index]
         val animatedHeight by animateFloatAsState(
             targetValue = if (isPlaying) {
-                baseHeight + (Random.nextFloat() * 0.3f)
+                baseHeight + (Random.nextFloat() * 0.2f)
             } else {
                 baseHeight
             },
@@ -211,7 +212,7 @@ private fun AudioWaveform(
     LaunchedEffect(isPlaying) {
         if (isPlaying) {
             while (true) {
-                delay(150)
+                delay(200)
                 baseHeights.forEach { _ -> Random.nextFloat() }
             }
         }
@@ -224,15 +225,24 @@ private fun AudioWaveform(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        animatedHeights.forEach { height ->
+        animatedHeights.forEachIndexed { index, height ->
+            val barProgress = index.toFloat() / barCount
+            val isInPlayedSection = barProgress <= progress
+
+            val barColor = if (isInPlayedSection) {
+                moodColor.copy(alpha = 0.7f)
+            } else {
+                moodColor.copy(alpha = 0.3f)
+            }
+
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight(height)
-                    .padding(horizontal = 1.dp)
+                    .padding(horizontal = 0.5.dp)
                     .background(
-                        color = moodColor.copy(alpha = 0.5f),
-                        shape = RoundedCornerShape(4.dp)
+                        color = barColor,
+                        shape = RoundedCornerShape(2.dp)
                     )
             )
         }

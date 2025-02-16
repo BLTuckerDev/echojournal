@@ -140,6 +140,7 @@ fun NavGraphBuilder.homeScreen(onNavigateToSettings: () -> Unit,
             onResumeRecording = viewModel::onResumeRecording,
             onCancelRecording = viewModel::onCancelRecording,
             onFinishRecording = viewModel::onFinishRecording,
+            onPlayPauseClick = viewModel::onPlayPauseClick,
             onRequestPermission = {
                 if(model.permissionState.userHasRepeatedlyDenied){
                     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
@@ -168,6 +169,7 @@ fun HomeScreen(
     onCancelRecording: () -> Unit = {},
     onFinishRecording: () -> Unit = {},
     onRequestPermission: () -> Unit = {},
+    onPlayPauseClick: (String) -> Unit,
 ) {
 
     Scaffold(modifier = modifier
@@ -226,8 +228,9 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues),
+                model = model,
                 onRequestPermission = onRequestPermission,
-                model = model
+                onPlayPauseClick = onPlayPauseClick,
             )
         }
 
@@ -249,6 +252,7 @@ private fun HomeScreenContent(
     modifier: Modifier = Modifier,
     model: HomeModel,
     onRequestPermission: () -> Unit,
+    onPlayPauseClick: (String) -> Unit,
 ) {
 
     val dateTimeFormatter = remember { DateTimeFormatter.ofPattern("EEEE, MMM dd") }
@@ -279,7 +283,7 @@ private fun HomeScreenContent(
                         }
                     },
                     items = entries,
-                    onPlayPauseClick = { /* TODO */ },
+                    onPlayPauseClick = onPlayPauseClick,
                     onShowMoreClick = { /* TODO */ },
                     onTopicClick = { /* TODO */ },
                 )
@@ -386,6 +390,8 @@ private fun HomeScreenPreview() {
             model = homeModel,
             onNavigateToSettings = {},
             onClickCreateEntryFab = {},
+            onRequestPermission = {},
+            onPlayPauseClick = {},
         )
     }
 }

@@ -4,11 +4,13 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dev.bltucker.echojournal.common.AudioPlayer
 import dev.bltucker.echojournal.common.AudioRecorder
 import dev.bltucker.echojournal.common.JournalRepository
 import dev.bltucker.echojournal.common.Mood
 import dev.bltucker.echojournal.common.MoodRepository
 import dev.bltucker.echojournal.common.TopicsRepository
+import dev.bltucker.echojournal.common.room.JournalEntry
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,6 +20,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
+import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Named
 
@@ -27,7 +30,9 @@ class HomeScreenViewModel @Inject constructor(
     private val topicRepository: TopicsRepository,
     private val moodRepository: MoodRepository,
     @Named("AudioDirectory") private val audioDirectory: File,
-    private val audioRecorder: AudioRecorder,) : ViewModel() {
+    private val audioRecorder: AudioRecorder,
+    private val audioPlayer: AudioPlayer,
+    ) : ViewModel() {
 
     private val mutableModel = MutableStateFlow(HomeModel())
     val observableModel: StateFlow<HomeModel> = mutableModel
@@ -42,6 +47,15 @@ class HomeScreenViewModel @Inject constructor(
         hasStarted = true
 
         loadAndObserveEntries()
+        observeAudioPlayerState()
+    }
+
+    fun observeAudioPlayerState(){
+        viewModelScope.launch {
+            audioPlayer.currentPlaybackState.collect { playbackState ->
+                updatePlaybackState(playbackState)
+            }
+        }
     }
 
     fun dismissPermissionRequest() {
@@ -220,6 +234,57 @@ class HomeScreenViewModel @Inject constructor(
 
     fun onHandledFinishedRecording() {
         mutableModel.update { it.copy(finishedRecordingId = null) }
+    }
+
+    fun onPlayPauseClick(entryId: String) {
+        val currentState = audioPlayer.currentPlaybackState.value
+        val entry = mutableModel.value.entries.find { it.id == entryId } ?: return
+
+        when (currentState) {
+            is AudioPlayer.PlaybackState.Playing -> {
+                if (currentState.entryId == entryId) {
+                    audioPlayer.pausePlayback()
+                } else {
+                    // Start playing new entry
+                    playEntry(entry)
+                }
+            }
+            is AudioPlayer.PlaybackState.Paused -> {
+                if (currentState.entryId == entryId) {
+                    audioPlayer.resumePlayback(viewModelScope)
+                } else {
+                    playEntry(entry)
+                }
+            }
+            is AudioPlayer.PlaybackState.Idle, is AudioPlayer.PlaybackState.Error -> {
+                playEntry(entry)
+            }
+        }
+    }
+
+    private fun playEntry(entry: JournalEntry) {
+        val audioFile = File(entry.audioFilePath)
+        if (audioFile.exists()) {
+            audioPlayer.playAudio(viewModelScope, audioFile, entry.id)
+        }
+    }
+
+    private fun updatePlaybackState(playbackState: AudioPlayer.PlaybackState) {
+        mutableModel.update { currentModel ->
+            currentModel.copy(
+                entries = currentModel.entries,
+                currentPlaybackId = when (playbackState) {
+                    is AudioPlayer.PlaybackState.Playing -> playbackState.entryId
+                    is AudioPlayer.PlaybackState.Paused -> playbackState.entryId
+                    AudioPlayer.PlaybackState.Idle, is AudioPlayer.PlaybackState.Error -> null
+                },
+                playbackProgress = when (playbackState) {
+                    is AudioPlayer.PlaybackState.Playing -> playbackState.progress
+                    is AudioPlayer.PlaybackState.Paused -> playbackState.position.toFloat() / playbackState.duration
+                    AudioPlayer.PlaybackState.Idle, is AudioPlayer.PlaybackState.Error -> 0f
+                }
+            )
+        }
     }
 
 }

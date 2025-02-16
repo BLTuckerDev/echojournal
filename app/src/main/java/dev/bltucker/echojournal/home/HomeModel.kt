@@ -15,6 +15,8 @@ data class HomeModel(val entries: List<JournalEntry> = emptyList(),
                      val recordingState: RecordingState = RecordingState(),
                      val permissionState: PermissionState = PermissionState(),
                      val finishedRecordingId: String? = null,
+                     val currentPlaybackId: String? = null,
+                     val playbackProgress: Float = 0f,
 ){
 
     val entriesByDay: Map<DaySection, List<JournalEntryCardState>> = groupEntriesByDay(entries)
@@ -35,6 +37,7 @@ data class HomeModel(val entries: List<JournalEntry> = emptyList(),
             .mapValues { (_, entriesForDay) ->
                 entriesForDay.map { entry ->
                     JournalEntryCardState(
+                        id = entry.id,
                         title = entry.title,
                         time = entry.createdAt.atZone(ZoneId.systemDefault()).toLocalTime().format(formatter),
                         description = entry.description,
@@ -86,6 +89,7 @@ data class RecordingState(
 
 
 data class JournalEntryCardState(
+    val id: String,
     val title: String,
     val time: String,
     val description: String? = null,

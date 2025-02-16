@@ -25,7 +25,7 @@ import dev.bltucker.echojournal.home.JournalEntryCardState
 fun JournalEntryCard(
     modifier: Modifier = Modifier,
     state: JournalEntryCardState,
-    onPlayPauseClick: () -> Unit = {},
+    onPlayPauseClick: (String) -> Unit = {},
     onShowMoreClick: () -> Unit = {},
     onTopicClick: (String) -> Unit = {}
 ) {
@@ -64,7 +64,9 @@ fun JournalEntryCard(
                 progress = state.audioProgress,
                 duration = state.audioDuration,
                 mood = state.mood,
-                onPlayPauseClick = onPlayPauseClick
+                onPlayPauseClick = {
+                    onPlayPauseClick(state.id)
+                }
             )
 
             if (!state.description.isNullOrEmpty()) {
@@ -124,7 +126,7 @@ private fun AudioPlayer(
     }
 
     Row(
-        modifier = Modifier
+        modifier = modifier
             .background(
                 color = moodColor.copy(alpha = 0.2f),
                 shape = RoundedCornerShape(100.dp)
@@ -216,6 +218,7 @@ private fun JournalEntryCardBasicPreview() {
         JournalEntryCard(
             modifier = Modifier.padding(16.dp),
             state = JournalEntryCardState(
+                id = "fake",
                 title = "My Entry",
                 time = "17:30",
                 mood = Mood.NEUTRAL,
@@ -233,6 +236,7 @@ private fun JournalEntryCardWithDescriptionPreview() {
         JournalEntryCard(
             modifier = Modifier.padding(16.dp),
             state = JournalEntryCardState(
+                id = "fake",
                 title = "My Entry",
                 time = "17:30",
                 mood = Mood.PEACEFUL,
@@ -251,6 +255,7 @@ private fun JournalEntryCardWithTopicsPreview() {
         JournalEntryCard(
             modifier = Modifier.padding(16.dp),
             state = JournalEntryCardState(
+                id = "fake",
                 title = "My Entry",
                 time = "17:30",
                 mood = Mood.SAD,
@@ -273,6 +278,7 @@ private fun JournalEntryCardExpandedDescriptionPreview() {
         JournalEntryCard(
             modifier = Modifier.padding(16.dp),
             state = JournalEntryCardState(
+                id = "fake",
                 title = "My Entry",
                 time = "17:30",
                 mood = Mood.EXCITED,

@@ -66,14 +66,13 @@ fun JournalListSection(
                     )
                 }
 
-                // List items
                 Column {
                     items.forEachIndexed { index, item ->
                         JournalListItem(
                             entry = item,
                             isFirstInSection = index == 0,
                             isLastInSection = index == items.size - 1,
-                            onPlayPauseClick = {  },
+                            onPlayPauseClick = onPlayPauseClick,
                             onShowMoreClick = {  },
                             onTopicClick = onTopicClick
                         )
@@ -90,7 +89,7 @@ fun JournalListItem(
     entry: JournalEntryCardState,
     isFirstInSection: Boolean = false,
     isLastInSection: Boolean = false,
-    onPlayPauseClick: () -> Unit = {},
+    onPlayPauseClick: (String) -> Unit = {},
     onShowMoreClick: () -> Unit = {},
     onTopicClick: (String) -> Unit = {}
 ) {
@@ -137,7 +136,9 @@ fun JournalListItem(
         JournalEntryCard(
             modifier = Modifier.weight(1f),
             state = entry,
-            onPlayPauseClick = onPlayPauseClick,
+            onPlayPauseClick = { entryId ->
+                onPlayPauseClick(entryId)
+            },
             onShowMoreClick = onShowMoreClick,
             onTopicClick = onTopicClick
         )
@@ -168,6 +169,7 @@ private fun JournalListSectionPreview() {
             headerText = "TODAY",
             items = listOf(
                 JournalEntryCardState(
+                    id = "fake",
                     title = "My Entry",
                     time = "17:30",
                     mood = Mood.PEACEFUL,
@@ -180,6 +182,7 @@ private fun JournalListSectionPreview() {
                     )
                 ),
                 JournalEntryCardState(
+                    id = "fake",
                     title = "Another Entry",
                     time = "15:45",
                     mood = Mood.EXCITED,
@@ -187,6 +190,7 @@ private fun JournalListSectionPreview() {
                     isPlaying = false
                 ),
                 JournalEntryCardState(
+                    id = "fake",
                     title = "Last Entry",
                     time = "12:30",
                     mood = Mood.SAD,

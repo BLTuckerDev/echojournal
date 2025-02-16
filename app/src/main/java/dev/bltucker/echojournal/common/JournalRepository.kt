@@ -31,4 +31,8 @@ class JournalRepository @Inject constructor(private val journalEntryDao: Journal
 
         return journalEntry.id
     }
+
+    suspend fun updateJournalEntry(journalEntry: JournalEntry){
+        journalEntryDao.updateEntry(journalEntry)
+    }
 }

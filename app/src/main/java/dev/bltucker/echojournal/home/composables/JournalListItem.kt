@@ -1,6 +1,7 @@
 package dev.bltucker.echojournal.home.composables
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,7 +40,8 @@ fun JournalListSection(
     items: List<JournalEntryCardState>,
     onPlayPauseClick: (String) -> Unit = {},
     onShowMoreClick: (String) -> Unit = {},
-    onTopicClick: (String) -> Unit = {}
+    onTopicClick: (String) -> Unit = {},
+    onClickEntry: (String) -> Unit,
 ) {
     Column(modifier = modifier) {
         JournalListHeader(text = headerText)
@@ -50,7 +52,8 @@ fun JournalListSection(
                     entry = item,
                     onPlayPauseClick = onPlayPauseClick,
                     onShowMoreClick = { },
-                    onTopicClick = onTopicClick
+                    onTopicClick = onTopicClick,
+                    onClickEntry = onClickEntry,
                 )
             }
         }
@@ -61,6 +64,7 @@ fun JournalListSection(
 fun JournalListItem(
     modifier: Modifier = Modifier,
     entry: JournalEntryCardState,
+    onClickEntry: (String) -> Unit,
     onPlayPauseClick: (String) -> Unit = {},
     onShowMoreClick: () -> Unit = {},
     onTopicClick: (String) -> Unit = {}
@@ -69,7 +73,8 @@ fun JournalListItem(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .padding(vertical = 8.dp),
+            .padding(vertical = 8.dp)
+            .clickable { onClickEntry(entry.id) },
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         val moodColor = when (entry.mood) {
@@ -139,6 +144,7 @@ private fun JournalListSectionPreview() {
     EchoJournalTheme {
         JournalListSection(
             headerText = "TODAY",
+            onClickEntry = {},
             items = listOf(
                 JournalEntryCardState(
                     id = "fake",
@@ -167,7 +173,7 @@ private fun JournalListSectionPreview() {
                     time = "12:30",
                     mood = Mood.SAD,
                     audioDuration = "0:00/5:20",
-                    isPlaying = false
+                    isPlaying = false,
                 )
             )
         )

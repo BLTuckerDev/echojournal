@@ -171,6 +171,7 @@ fun NavGraphBuilder.homeScreen(onNavigateToSettings: () -> Unit,
             onClearTopicFilterButton = viewModel::onClearTopicFilter,
             onTopicSelected = viewModel::onTopicSelected,
             onDismissTopicFilter = viewModel::onDismissTopicFilter,
+            onClickEntry = onNavigateToCreateEntry
         )
     }
 }
@@ -200,6 +201,8 @@ fun HomeScreen(
     onClearTopicFilterButton: () -> Unit,
     onTopicSelected: (Topic) -> Unit,
     onDismissTopicFilter: () -> Unit,
+
+    onClickEntry: (String) -> Unit,
 ) {
 
     Scaffold(modifier = modifier
@@ -273,6 +276,7 @@ fun HomeScreen(
                 onClearTopicFilterButton = onClearTopicFilterButton,
                 onTopicSelected = onTopicSelected,
                 onDismissTopicFilter = onDismissTopicFilter,
+                onClickEntry = onClickEntry,
             )
         }
 
@@ -306,6 +310,8 @@ private fun HomeScreenContent(
     onClearTopicFilterButton: () -> Unit,
     onTopicSelected: (Topic) -> Unit,
     onDismissTopicFilter: () -> Unit,
+
+    onClickEntry: (String) -> Unit,
 ) {
 
     val dateTimeFormatter = remember { DateTimeFormatter.ofPattern("EEEE, MMM dd") }
@@ -384,6 +390,7 @@ private fun HomeScreenContent(
                     onPlayPauseClick = onPlayPauseClick,
                     onShowMoreClick = { /* TODO */ },
                     onTopicClick = { /* TODO */ },
+                    onClickEntry = onClickEntry
                 )
             }
         }
@@ -499,6 +506,7 @@ private fun HomeScreenPreview() {
             onClearTopicFilterButton = {},
             onTopicSelected = {},
             onDismissTopicFilter = {},
+            onClickEntry = {}
         )
     }
 }

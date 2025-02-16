@@ -214,6 +214,7 @@ class HomeScreenViewModel @Inject constructor(
         super.onCleared()
         stopTimeTracking()
         audioRecorder.stopRecording()
+        audioPlayer.stopPlayback()
     }
 
     fun updatePermissionState(

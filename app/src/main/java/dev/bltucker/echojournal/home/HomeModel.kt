@@ -12,7 +12,12 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 data class HomeModel(val entries: List<JournalEntry> = emptyList(),
+                     val topicsByEntry: Map<String, List<Topic>> = emptyMap(),
                      val topics: List<Topic> = emptyList(),
+                     val selectedMoods: Set<Mood> = emptySet(),
+                     val selectedTopics: Set<Topic> = emptySet(),
+                     val showMoodFilterMenu: Boolean = false,
+                     val showTopicFilterMenu: Boolean = false,
                      val showRecordingBottomSheet: Boolean = false,
                      val recordingState: RecordingState = RecordingState(),
                      val permissionState: PermissionState = PermissionState(),
@@ -21,6 +26,12 @@ data class HomeModel(val entries: List<JournalEntry> = emptyList(),
                      val currentPlaybackState: AudioPlayer.PlaybackState = AudioPlayer.PlaybackState.Idle,
                      val playbackProgress: Float = 0f,
 ){
+
+    val filteredEntries: List<JournalEntry> = entries.filter { entry ->
+        val moodFilterMatches = selectedMoods.isEmpty() || entry.mood in selectedMoods
+        val topicFilterMatches = selectedTopics.isEmpty() || topicsByEntry.getOrDefault(entry.id, emptyList()).any { it in selectedTopics }
+        moodFilterMatches && topicFilterMatches
+    }
 
     val entriesByDay: Map<DaySection, List<JournalEntryCardState>> = groupEntriesByDay(entries)
 
@@ -48,7 +59,7 @@ data class HomeModel(val entries: List<JournalEntry> = emptyList(),
                         title = entry.title,
                         time = entry.createdAt.atZone(ZoneId.systemDefault()).toLocalTime().format(formatter),
                         description = entry.description,
-                        topics = emptyList(), // TODO: need topics
+                        topics = topicsByEntry.getOrDefault(entry.id, emptyList()),
                         audioDuration = formatDuration(entry.durationSeconds),
                         isPlaying = isCurrentlyPlaying,
                         isDescriptionExpanded = false,

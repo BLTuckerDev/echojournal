@@ -9,6 +9,8 @@ import javax.inject.Singleton
 @Singleton
 class TopicsRepository @Inject constructor(private val topicDao: TopicDao) {
 
+    fun getTopicForEntry(entryId: String): Flow<List<Topic>> = topicDao.getTopicsForEntry(entryId)
+
     fun getAllTopics(): Flow<List<Topic>> = topicDao.getAllTopics()
 
     fun getAutoAppliedTopics(): Flow<List<Topic>> = topicDao.getAutoAppliedTopics()

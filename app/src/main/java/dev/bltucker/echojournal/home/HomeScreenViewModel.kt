@@ -11,6 +11,7 @@ import dev.bltucker.echojournal.common.Mood
 import dev.bltucker.echojournal.common.MoodRepository
 import dev.bltucker.echojournal.common.TopicsRepository
 import dev.bltucker.echojournal.common.room.JournalEntry
+import dev.bltucker.echojournal.common.room.Topic
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -71,9 +72,21 @@ class HomeScreenViewModel @Inject constructor(
     private fun loadAndObserveEntries(){
         viewModelScope.launch {
             journalRepository.getAllJournalEntries().collect{ entries ->
+
+                val topicsForEntriesMap = entries.map { it.id }
+                    .associateWith { entryId ->
+                        topicRepository.getTopicForEntry(entryId).firstOrNull() ?: emptyList()
+                    }
+
                 mutableModel.update {
-                    it.copy(entries = entries)
+                    it.copy(entries = entries, topicsByEntry = topicsForEntriesMap)
                 }
+            }
+        }
+
+        viewModelScope.launch {
+            topicRepository.getAllTopics().collect { topics ->
+                mutableModel.update { it.copy(topics = topics) }
             }
         }
     }
@@ -286,6 +299,54 @@ class HomeScreenViewModel @Inject constructor(
                 }
             )
         }
+    }
+
+    fun onMoodFilterClick() {
+        mutableModel.update { it.copy(showMoodFilterMenu = true) }
+    }
+
+    fun onTopicFilterClick() {
+        mutableModel.update { it.copy(showTopicFilterMenu = true) }
+    }
+
+    fun onDismissMoodFilter() {
+        mutableModel.update { it.copy(showMoodFilterMenu = false) }
+    }
+
+    fun onDismissTopicFilter() {
+        mutableModel.update { it.copy(showTopicFilterMenu = false) }
+    }
+
+    fun onMoodSelected(mood: Mood) {
+        mutableModel.update { currentModel ->
+            val updatedMoods = currentModel.selectedMoods.toMutableSet()
+            if (mood in updatedMoods) {
+                updatedMoods.remove(mood)
+            } else {
+                updatedMoods.add(mood)
+            }
+            currentModel.copy(selectedMoods = updatedMoods)
+        }
+    }
+
+    fun onTopicSelected(topic: Topic) {
+        mutableModel.update { currentModel ->
+            val updatedTopics = currentModel.selectedTopics.toMutableSet()
+            if (topic in updatedTopics) {
+                updatedTopics.remove(topic)
+            } else {
+                updatedTopics.add(topic)
+            }
+            currentModel.copy(selectedTopics = updatedTopics)
+        }
+    }
+
+    fun onClearMoodFilter() {
+        mutableModel.update { it.copy(selectedMoods = emptySet()) }
+    }
+
+    fun onClearTopicFilter() {
+        mutableModel.update { it.copy(selectedTopics = emptySet()) }
     }
 
 }

@@ -19,6 +19,7 @@ import dev.bltucker.echojournal.common.room.Topic
 import dev.bltucker.echojournal.common.theme.EchoJournalTheme
 import dev.bltucker.echojournal.common.theme.MoodColors
 import dev.bltucker.echojournal.home.JournalEntryCardState
+import kotlin.random.Random
 
 
 @Composable
@@ -64,9 +65,7 @@ fun JournalEntryCard(
                 progress = state.audioProgress,
                 duration = state.audioDuration,
                 mood = state.mood,
-                onPlayPauseClick = {
-                    onPlayPauseClick(state.id)
-                }
+                onPlayPauseClick = { onPlayPauseClick(state.id) }
             )
 
             if (!state.description.isNullOrEmpty()) {
@@ -78,7 +77,6 @@ fun JournalEntryCard(
                     overflow = TextOverflow.Ellipsis
                 )
 
-                //TODO roll this into the textfield itself eventually
                 if (!state.isDescriptionExpanded) {
                     TextButton(
                         onClick = onShowMoreClick,
@@ -135,6 +133,7 @@ private fun AudioPlayer(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
+        // Play/Pause Button
         Surface(
             modifier = Modifier.size(32.dp),
             shape = CircleShape,
@@ -158,16 +157,48 @@ private fun AudioPlayer(
             }
         }
 
-        // Audio waveform visualization colored by mood
-        Surface(
+        // Audio Progress Bar
+        Box(
             modifier = Modifier
                 .weight(1f)
-                .height(24.dp),
-
-            shape = RoundedCornerShape(12.dp)
+                .height(24.dp)
+                .background(
+                    color = Color.White.copy(alpha = 0.5f),
+                    shape = RoundedCornerShape(12.dp)
+                )
         ) {
-            // TODO: Add actual waveform visualization
-            // For now, just showing a placeholder colored background
+            // Progress indicator
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .fillMaxWidth(progress)
+                    .background(
+                        color = moodColor.copy(alpha = 0.3f),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+            )
+
+            // Audio wave visualization (static for now)
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                repeat(20) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight(0.3f + (Random.nextFloat() * 0.7f))
+                            .padding(horizontal = 1.dp)
+                            .background(
+                                color = moodColor.copy(alpha = 0.5f),
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                    )
+                }
+            }
         }
 
         Text(
@@ -175,7 +206,6 @@ private fun AudioPlayer(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-
     }
 }
 

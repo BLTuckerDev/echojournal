@@ -278,6 +278,7 @@ class HomeScreenViewModel @Inject constructor(
                     is AudioPlayer.PlaybackState.Paused -> playbackState.entryId
                     AudioPlayer.PlaybackState.Idle, is AudioPlayer.PlaybackState.Error -> null
                 },
+                currentPlaybackState = playbackState,
                 playbackProgress = when (playbackState) {
                     is AudioPlayer.PlaybackState.Playing -> playbackState.progress
                     is AudioPlayer.PlaybackState.Paused -> playbackState.position.toFloat() / playbackState.duration

@@ -1,5 +1,6 @@
 package dev.bltucker.echojournal.home
 
+import dev.bltucker.echojournal.common.AudioPlayer
 import dev.bltucker.echojournal.common.Mood
 import dev.bltucker.echojournal.common.room.JournalEntry
 import dev.bltucker.echojournal.common.room.Topic
@@ -7,6 +8,7 @@ import java.io.File
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 data class HomeModel(val entries: List<JournalEntry> = emptyList(),
@@ -16,6 +18,7 @@ data class HomeModel(val entries: List<JournalEntry> = emptyList(),
                      val permissionState: PermissionState = PermissionState(),
                      val finishedRecordingId: String? = null,
                      val currentPlaybackId: String? = null,
+                     val currentPlaybackState: AudioPlayer.PlaybackState = AudioPlayer.PlaybackState.Idle,
                      val playbackProgress: Float = 0f,
 ){
 
@@ -25,6 +28,7 @@ data class HomeModel(val entries: List<JournalEntry> = emptyList(),
         val today = LocalDate.now()
         val yesterday = today.minusDays(1)
         val formatter = DateTimeFormatter.ofPattern("HH:mm")
+
         return entries
             .groupBy { entry ->
                 val entryDate = entry.createdAt.atZone(ZoneId.systemDefault()).toLocalDate()
@@ -36,21 +40,30 @@ data class HomeModel(val entries: List<JournalEntry> = emptyList(),
             }
             .mapValues { (_, entriesForDay) ->
                 entriesForDay.map { entry ->
+                    val isCurrentlyPlaying = entry.id == currentPlaybackId && currentPlaybackState is AudioPlayer.PlaybackState.Playing
+                    val currentProgress = if (isCurrentlyPlaying) playbackProgress else 0f
+
                     JournalEntryCardState(
                         id = entry.id,
                         title = entry.title,
                         time = entry.createdAt.atZone(ZoneId.systemDefault()).toLocalTime().format(formatter),
                         description = entry.description,
-                        topics = emptyList(), //TODO need topics
-                        audioDuration = "${entry.durationSeconds / 60}:${String.format("%02d", entry.durationSeconds % 60)}/${entry.durationSeconds / 60}:${String.format("%02d", entry.durationSeconds % 60)}",
-                        isPlaying = false,
+                        topics = emptyList(), // TODO: need topics
+                        audioDuration = formatDuration(entry.durationSeconds),
+                        isPlaying = isCurrentlyPlaying,
                         isDescriptionExpanded = false,
                         mood = entry.mood,
-                        audioProgress = 0f
+                        audioProgress = currentProgress
                     )
                 }
             }
             .toSortedMap(compareBy { it.sortOrder })
+    }
+
+    private fun formatDuration(totalSeconds: Int): String {
+        val minutes = totalSeconds / 60
+        val seconds = totalSeconds % 60
+        return String.format(Locale.getDefault(), "%d:%02d", minutes, seconds)
     }
 }
 
@@ -85,7 +98,6 @@ data class RecordingState(
         return String.format("%02d:%02d:%02d", hours, minutes, seconds)
     }
 }
-
 
 
 data class JournalEntryCardState(

@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
@@ -63,6 +64,7 @@ import androidx.navigation.compose.composable
 import dev.bltucker.echojournal.R
 import dev.bltucker.echojournal.common.Mood
 import dev.bltucker.echojournal.common.room.JournalEntry
+import dev.bltucker.echojournal.common.room.Topic
 import dev.bltucker.echojournal.common.theme.EchoJournalTheme
 import dev.bltucker.echojournal.common.theme.GradientColors
 import dev.bltucker.echojournal.home.composables.JournalListSection
@@ -70,6 +72,8 @@ import dev.bltucker.echojournal.home.composables.MoodFilterButton
 import dev.bltucker.echojournal.home.composables.MoodFilterDropdown
 import dev.bltucker.echojournal.home.composables.PermissionBanner
 import dev.bltucker.echojournal.home.composables.RecordingBottomSheet
+import dev.bltucker.echojournal.home.composables.TopicFilterButton
+import dev.bltucker.echojournal.home.composables.TopicFilterDropdown
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
@@ -159,6 +163,10 @@ fun NavGraphBuilder.homeScreen(onNavigateToSettings: () -> Unit,
             onClearMoodFilterClick = viewModel::onClearMoodFilter,
             onMoodSelected = viewModel::onMoodSelected,
             onDismissMoodFilter = viewModel::onDismissMoodFilter,
+            onClickTopicFilterButton = viewModel::onTopicFilterClick,
+            onClearTopicFilterButton = viewModel::onClearTopicFilter,
+            onTopicSelected = viewModel::onTopicSelected,
+            onDismissTopicFilter = viewModel::onDismissTopicFilter,
         )
     }
 }
@@ -183,6 +191,11 @@ fun HomeScreen(
     onClearMoodFilterClick: () -> Unit,
     onMoodSelected: (Mood) -> Unit,
     onDismissMoodFilter: () -> Unit,
+
+    onClickTopicFilterButton: () -> Unit,
+    onClearTopicFilterButton: () -> Unit,
+    onTopicSelected: (Topic) -> Unit,
+    onDismissTopicFilter: () -> Unit,
 ) {
 
     Scaffold(modifier = modifier
@@ -248,8 +261,10 @@ fun HomeScreen(
                 onClearMoodFilterClick = onClearMoodFilterClick,
                 onMoodSelected = onMoodSelected,
                 onDismissMoodFilter = onDismissMoodFilter,
-
-
+                onClickTopicFilterButton = onClickTopicFilterButton,
+                onClearTopicFilterButton = onClearTopicFilterButton,
+                onTopicSelected = onTopicSelected,
+                onDismissTopicFilter = onDismissTopicFilter,
             )
         }
 
@@ -277,6 +292,12 @@ private fun HomeScreenContent(
     onClearMoodFilterClick: () -> Unit,
     onMoodSelected: (Mood) -> Unit,
     onDismissMoodFilter: () -> Unit,
+
+
+    onClickTopicFilterButton: () -> Unit,
+    onClearTopicFilterButton: () -> Unit,
+    onTopicSelected: (Topic) -> Unit,
+    onDismissTopicFilter: () -> Unit,
 ) {
 
     val dateTimeFormatter = remember { DateTimeFormatter.ofPattern("EEEE, MMM dd") }
@@ -306,7 +327,26 @@ private fun HomeScreenContent(
                     )
                 }
 
+                Spacer(modifier = Modifier.width(8.dp))
 
+
+                Box(){
+                    TopicFilterButton(
+                        selectedTopics = model.selectedTopics,
+                        onClick = onClickTopicFilterButton,
+                        onClickClearFilter = onClearTopicFilterButton
+                    )
+
+                    TopicFilterDropdown(
+                        topics = model.topics,
+                        selectedTopics = model.selectedTopics,
+                        onTopicSelected = { topic ->
+                            onTopicSelected(topic)
+                        },
+                        expanded = model.showTopicFilterMenu,
+                        onDismiss = { onDismissTopicFilter() },
+                    )
+                }
             }
         }
 
@@ -446,6 +486,10 @@ private fun HomeScreenPreview() {
             onClearMoodFilterClick = {},
             onMoodSelected = {},
             onDismissMoodFilter = {},
+            onClickTopicFilterButton = {},
+            onClearTopicFilterButton = {},
+            onTopicSelected = {},
+            onDismissTopicFilter = {},
         )
     }
 }

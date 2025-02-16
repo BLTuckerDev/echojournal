@@ -17,6 +17,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -31,11 +35,13 @@ import dev.bltucker.echojournal.common.theme.MoodColors
 @Composable
 fun MoodSelector(
     modifier: Modifier = Modifier,
-    selectedMood: Mood? = null,
-    onMoodSelected: (Mood) -> Unit = {},
-    onConfirm: () -> Unit = {},
+    entryMood: Mood? = null,
+    onConfirm: (Mood) -> Unit = {},
     onCancel: () -> Unit = {}
 ) {
+
+    var selectedMood by remember { mutableStateOf(entryMood) }
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -58,7 +64,7 @@ fun MoodSelector(
                 MoodOption(
                     mood = mood,
                     isSelected = mood == selectedMood,
-                    onSelect = { onMoodSelected(mood) }
+                    onSelect = { selectedMood = it}
                 )
             }
         }
@@ -77,7 +83,12 @@ fun MoodSelector(
             }
 
             FilledTonalButton(
-                onClick = onConfirm,
+                onClick = {
+                    val safeMood = selectedMood
+                    safeMood?.let {
+                        onConfirm(safeMood)
+                    }
+                },
                 modifier = Modifier.weight(1f),
                 enabled = selectedMood != null
             ) {
@@ -137,7 +148,7 @@ private fun MoodOption(
 private fun MoodSelectorPreview() {
     EchoJournalTheme {
         MoodSelector(
-            selectedMood = Mood.PEACEFUL
+            entryMood = Mood.PEACEFUL,
         )
     }
 }

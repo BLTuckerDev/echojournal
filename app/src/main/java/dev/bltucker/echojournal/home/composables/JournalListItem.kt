@@ -44,40 +44,14 @@ fun JournalListSection(
     Column(modifier = modifier) {
         JournalListHeader(text = headerText)
 
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = Color.Transparent
-        ) {
-            Box {
-                // Timeline line
-                val lineColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
-                Canvas(
-                    modifier = Modifier
-                        .width(1.dp)
-                        .fillMaxHeight()
-                        .align(Alignment.CenterStart)
-                        .offset(x = 31.dp) // Centers line with mood icons
-                ) {
-                    drawLine(
-                        color = lineColor,
-                        start = Offset(0f, 0f),
-                        end = Offset(0f, size.height),
-                        strokeWidth = 1.dp.toPx()
-                    )
-                }
-
-                Column {
-                    items.forEachIndexed { index, item ->
-                        JournalListItem(
-                            entry = item,
-                            isFirstInSection = index == 0,
-                            isLastInSection = index == items.size - 1,
-                            onPlayPauseClick = onPlayPauseClick,
-                            onShowMoreClick = {  },
-                            onTopicClick = onTopicClick
-                        )
-                    }
-                }
+        Column {
+            items.forEachIndexed { index, item ->
+                JournalListItem(
+                    entry = item,
+                    onPlayPauseClick = onPlayPauseClick,
+                    onShowMoreClick = { },
+                    onTopicClick = onTopicClick
+                )
             }
         }
     }
@@ -87,8 +61,6 @@ fun JournalListSection(
 fun JournalListItem(
     modifier: Modifier = Modifier,
     entry: JournalEntryCardState,
-    isFirstInSection: Boolean = false,
-    isLastInSection: Boolean = false,
     onPlayPauseClick: (String) -> Unit = {},
     onShowMoreClick: () -> Unit = {},
     onTopicClick: (String) -> Unit = {}

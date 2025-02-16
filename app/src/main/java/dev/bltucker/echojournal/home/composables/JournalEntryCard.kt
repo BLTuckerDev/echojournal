@@ -1,5 +1,8 @@
 package dev.bltucker.echojournal.home.composables
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -19,6 +22,7 @@ import dev.bltucker.echojournal.common.room.Topic
 import dev.bltucker.echojournal.common.theme.EchoJournalTheme
 import dev.bltucker.echojournal.common.theme.MoodColors
 import dev.bltucker.echojournal.home.JournalEntryCardState
+import kotlinx.coroutines.delay
 import kotlin.random.Random
 
 
@@ -59,6 +63,7 @@ fun JournalEntryCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+
 
             AudioPlayer(
                 isPlaying = state.isPlaying,
@@ -133,7 +138,6 @@ private fun AudioPlayer(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Play/Pause Button
         Surface(
             modifier = Modifier.size(32.dp),
             shape = CircleShape,
@@ -157,48 +161,15 @@ private fun AudioPlayer(
             }
         }
 
-        // Audio Progress Bar
         Box(
             modifier = Modifier
                 .weight(1f)
                 .height(24.dp)
-                .background(
-                    color = Color.White.copy(alpha = 0.5f),
-                    shape = RoundedCornerShape(12.dp)
-                )
         ) {
-            // Progress indicator
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(progress)
-                    .background(
-                        color = moodColor.copy(alpha = 0.3f),
-                        shape = RoundedCornerShape(12.dp)
-                    )
+            AudioWaveform(
+                isPlaying = isPlaying,
+                moodColor = moodColor
             )
-
-            // Audio wave visualization (static for now)
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 8.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                repeat(20) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight(0.3f + (Random.nextFloat() * 0.7f))
-                            .padding(horizontal = 1.dp)
-                            .background(
-                                color = moodColor.copy(alpha = 0.5f),
-                                shape = RoundedCornerShape(4.dp)
-                            )
-                    )
-                }
-            }
         }
 
         Text(
@@ -206,6 +177,65 @@ private fun AudioPlayer(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+    }
+}
+
+
+@Composable
+private fun AudioWaveform(
+    modifier: Modifier = Modifier,
+    isPlaying: Boolean,
+    moodColor: Color,
+    barCount: Int = 20
+) {
+    val baseHeights = remember {
+        List(barCount) { 0.3f + (Random.nextFloat() * 0.4f) }
+    }
+
+    val animatedHeights = List(barCount) { index ->
+        val baseHeight = baseHeights[index]
+        val animatedHeight by animateFloatAsState(
+            targetValue = if (isPlaying) {
+                baseHeight + (Random.nextFloat() * 0.3f)
+            } else {
+                baseHeight
+            },
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow
+            )
+        )
+        animatedHeight
+    }
+
+    LaunchedEffect(isPlaying) {
+        if (isPlaying) {
+            while (true) {
+                delay(150)
+                baseHeights.forEach { _ -> Random.nextFloat() }
+            }
+        }
+    }
+
+    Row(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 8.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        animatedHeights.forEach { height ->
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(height)
+                    .padding(horizontal = 1.dp)
+                    .background(
+                        color = moodColor.copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(4.dp)
+                    )
+            )
+        }
     }
 }
 

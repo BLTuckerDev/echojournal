@@ -27,12 +27,6 @@ data class HomeModel(val entries: List<JournalEntry> = emptyList(),
                      val playbackProgress: Float = 0f,
 ){
 
-    val filteredEntries: List<JournalEntry> = entries.filter { entry ->
-        val moodFilterMatches = selectedMoods.isEmpty() || entry.mood in selectedMoods
-        val topicFilterMatches = selectedTopics.isEmpty() || topicsByEntry.getOrDefault(entry.id, emptyList()).any { it in selectedTopics }
-        moodFilterMatches && topicFilterMatches
-    }
-
     val entriesByDay: Map<DaySection, List<JournalEntryCardState>> = groupEntriesByDay(entries)
 
     private fun groupEntriesByDay(entries: List<JournalEntry>): Map<DaySection, List<JournalEntryCardState>> {
@@ -41,6 +35,11 @@ data class HomeModel(val entries: List<JournalEntry> = emptyList(),
         val formatter = DateTimeFormatter.ofPattern("HH:mm")
 
         return entries
+            .filter { entry ->
+                val moodFilterMatches = selectedMoods.isEmpty() || entry.mood in selectedMoods
+                val topicFilterMatches = selectedTopics.isEmpty() || topicsByEntry.getOrDefault(entry.id, emptyList()).any { it in selectedTopics }
+                moodFilterMatches && topicFilterMatches
+            }
             .groupBy { entry ->
                 val entryDate = entry.createdAt.atZone(ZoneId.systemDefault()).toLocalDate()
                 when (entryDate) {

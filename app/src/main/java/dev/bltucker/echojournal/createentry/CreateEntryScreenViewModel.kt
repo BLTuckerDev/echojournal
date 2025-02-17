@@ -132,4 +132,38 @@ class CreateEntryScreenViewModel @Inject constructor(
             it.copy(title = updatedTitle)
         }
     }
+
+    fun onSave(){
+        viewModelScope.launch {
+            val latestModel = mutableModel.value
+            val entry = latestModel.journalEntry ?: return@launch
+            val mood = latestModel.selectedMood ?: entry.mood
+
+            val topics = latestModel.selectedTopics.toList()
+
+            val updatedEntry = entry.copy(
+                title = mutableModel.value.title,
+                description = mutableModel.value.description,
+                mood = mood,
+            )
+
+            journalRepository.updateJournalEntry(updatedEntry)
+            topicsRepository.updateTopicsForEntry(updatedEntry.id, topics)
+
+            mutableModel.update {
+                it.copy(journalEntry = updatedEntry,
+                    title = updatedEntry.title,
+                    description = updatedEntry.description,
+                    selectedMood = updatedEntry.mood,
+                    snackbarMessage = "Save Complete"
+                )
+            }
+        }
+    }
+
+    fun onClearSnackbarMessage() {
+        mutableModel.update {
+            it.copy(snackbarMessage = null)
+        }
+    }
 }

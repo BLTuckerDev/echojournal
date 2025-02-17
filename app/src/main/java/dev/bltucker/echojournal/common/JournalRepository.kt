@@ -15,7 +15,8 @@ class JournalRepository @Inject constructor(private val journalEntryDao: Journal
         return journalEntryDao.getEntryById(entryId)
     }
 
-    suspend fun createJournalEntry(audioFilePath: String,
+    suspend fun createJournalEntry(
+                            audioFilePath: String,
                            durationSeconds: Int,
                            defaultMood: Mood): String {
         val journalEntry = JournalEntry(
@@ -23,7 +24,7 @@ class JournalRepository @Inject constructor(private val journalEntryDao: Journal
             durationSeconds = durationSeconds,
             transcription = null,
             mood = defaultMood,
-            title = "",
+            title = "New Entry",
             description = ""
         )
 

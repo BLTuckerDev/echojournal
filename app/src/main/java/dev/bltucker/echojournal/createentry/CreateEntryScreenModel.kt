@@ -26,6 +26,8 @@ data class CreateEntryScreenModel(
 
     val showDiscardChangesDialog: Boolean = false,
 
+    val snackbarMessage: String? = null,
+
     ) {
     val hasMadeChanges: Boolean
         get() = title != journalEntry?.title ||

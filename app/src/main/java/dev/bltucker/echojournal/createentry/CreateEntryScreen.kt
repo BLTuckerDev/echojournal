@@ -3,19 +3,27 @@ package dev.bltucker.echojournal.createentry
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -45,10 +53,13 @@ fun NavGraphBuilder.createEntryScreen(onNavigateBack: () -> Unit){
         val viewModel = hiltViewModel<CreateEntryScreenViewModel>()
         val model by viewModel.observableModel.collectAsStateWithLifecycle()
 
+
         LifecycleStartEffect(Unit) {
             viewModel.onStart(args.entryId)
             onStopOrDispose {  }
         }
+
+
 
         CreateEntryScreen(
             modifier = Modifier.fillMaxSize(),
@@ -59,6 +70,8 @@ fun NavGraphBuilder.createEntryScreen(onNavigateBack: () -> Unit){
             onDismissMoodSelector = viewModel::onDismissMoodSelector,
             onShowMoodSelector = viewModel::onShowMoodSelector,
             onEntryTitleChange = viewModel::onEntryTitleChange,
+            onSave = viewModel::onSave,
+            onClearSnackBarMessage = viewModel::onClearSnackbarMessage,
         )
     }
 }
@@ -77,9 +90,27 @@ private fun CreateEntryScreen(
     onShowMoodSelector: () -> Unit,
     onEntryTitleChange: (String) -> Unit,
 
+    onSave: () -> Unit,
+    onClearSnackBarMessage: () -> Unit,
     ) {
+
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(model.snackbarMessage){
+        if(model.snackbarMessage != null){
+            snackbarHostState.showSnackbar(
+                message = model.snackbarMessage,
+                duration = SnackbarDuration.Short
+            )
+            onClearSnackBarMessage()
+        }
+    }
+
     Scaffold(
         modifier = modifier,
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        },
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("Entry Details") },
@@ -103,6 +134,12 @@ private fun CreateEntryScreen(
                 onTitleChange = onEntryTitleChange
             )
 
+            Spacer(modifier = Modifier.weight(1f))
+
+            SaveAndCancelRow(modifier = Modifier.fillMaxWidth(),
+                onCancel = onNavigateBack,
+                onSave = onSave,
+            )
 
             if(model.isShowingMoodSelector){
                 ModalBottomSheet(onDismissRequest = onDismissMoodSelector,
@@ -118,6 +155,30 @@ private fun CreateEntryScreen(
     }
 }
 
+@Composable
+private fun SaveAndCancelRow(modifier: Modifier = Modifier,
+                             onCancel: () -> Unit,
+                             onSave: () -> Unit){
+    Row(modifier = modifier.padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)){
+
+        OutlinedButton(
+            onClick = onCancel,
+            modifier = Modifier.weight(1f)
+        ) {
+            Text("Cancel")
+        }
+
+        FilledTonalButton(
+            modifier = Modifier.weight(1f),
+            onClick = onSave,
+        ) {
+            Text("Save")
+        }
+
+    }
+}
 
 @Composable
 private fun MoodAndTitleRow(modifier: Modifier = Modifier,

@@ -42,4 +42,8 @@ class TopicsRepository @Inject constructor(private val topicDao: TopicDao) {
     suspend fun getTopicById(id: String): Topic? {
         return topicDao.getTopicById(id)
     }
+
+    suspend fun updateTopicsForEntry(entryId: String, topics: List<Topic>) {
+        topicDao.updateEntryTopics(entryId, topics.map { it.id })
+    }
 }

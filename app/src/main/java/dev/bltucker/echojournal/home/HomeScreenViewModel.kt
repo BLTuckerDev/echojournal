@@ -179,6 +179,8 @@ class HomeScreenViewModel @Inject constructor(
                 defaultMood = defaultMood
             )
 
+            val defaultTopics = topicRepository.getAutoAppliedTopics().firstOrNull() ?: emptyList()
+            topicRepository.updateTopicsForEntry(entryId, defaultTopics)
 
             mutableModel.update {
                 it.copy(finishedRecordingId = entryId,

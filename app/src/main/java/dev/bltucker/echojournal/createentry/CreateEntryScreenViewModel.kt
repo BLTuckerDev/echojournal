@@ -8,6 +8,7 @@ import dev.bltucker.echojournal.common.JournalRepository
 import dev.bltucker.echojournal.common.Mood
 import dev.bltucker.echojournal.common.MoodRepository
 import dev.bltucker.echojournal.common.TopicsRepository
+import dev.bltucker.echojournal.common.room.JournalEntry
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
@@ -164,6 +165,40 @@ class CreateEntryScreenViewModel @Inject constructor(
     fun onClearSnackbarMessage() {
         mutableModel.update {
             it.copy(snackbarMessage = null)
+        }
+    }
+
+    fun onPlayPauseClick() {
+        val currentState = audioPlayer.currentPlaybackState.value
+        val entry = mutableModel.value.journalEntry ?: return
+        val entryId = entry.id
+
+        when (currentState) {
+            is AudioPlayer.PlaybackState.Playing -> {
+                if (currentState.entryId == entryId) {
+                    audioPlayer.pausePlayback()
+                } else {
+                    // Start playing new entry
+                    playEntry(entry)
+                }
+            }
+            is AudioPlayer.PlaybackState.Paused -> {
+                if (currentState.entryId == entryId) {
+                    audioPlayer.resumePlayback(viewModelScope)
+                } else {
+                    playEntry(entry)
+                }
+            }
+            is AudioPlayer.PlaybackState.Idle, is AudioPlayer.PlaybackState.Error -> {
+                playEntry(entry)
+            }
+        }
+    }
+
+    private fun playEntry(entry: JournalEntry) {
+        val audioFile = File(entry.audioFilePath)
+        if (audioFile.exists()) {
+            audioPlayer.playAudio(viewModelScope, audioFile, entry.id)
         }
     }
 }

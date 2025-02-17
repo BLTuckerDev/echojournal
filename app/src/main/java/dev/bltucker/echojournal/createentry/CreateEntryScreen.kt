@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,6 +37,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import dev.bltucker.echojournal.R
 import dev.bltucker.echojournal.common.Mood
+import dev.bltucker.echojournal.common.composables.AudioPlayer
+import dev.bltucker.echojournal.common.theme.MoodColors
 import dev.bltucker.echojournal.createentry.composables.EntryTitleField
 import dev.bltucker.echojournal.createentry.composables.MoodIndicator
 import dev.bltucker.echojournal.createentry.composables.MoodSelector
@@ -72,6 +75,7 @@ fun NavGraphBuilder.createEntryScreen(onNavigateBack: () -> Unit){
             onEntryTitleChange = viewModel::onEntryTitleChange,
             onSave = viewModel::onSave,
             onClearSnackBarMessage = viewModel::onClearSnackbarMessage,
+            onPlayPauseClick = viewModel::onPlayPauseClick,
         )
     }
 }
@@ -92,6 +96,8 @@ private fun CreateEntryScreen(
 
     onSave: () -> Unit,
     onClearSnackBarMessage: () -> Unit,
+
+    onPlayPauseClick: () -> Unit,
     ) {
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -133,6 +139,16 @@ private fun CreateEntryScreen(
                 onClickMoodIndicator = onShowMoodSelector,
                 onTitleChange = onEntryTitleChange
             )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            AudioPlayer(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                isPlaying = model.isPlaying,
+                progress = model.playbackProgress,
+                duration = model.audioDuration,
+                mood = model.journalEntry?.mood ?: Mood.NEUTRAL,
+                onPlayPauseClick = onPlayPauseClick,
+                )
 
             Spacer(modifier = Modifier.weight(1f))
 

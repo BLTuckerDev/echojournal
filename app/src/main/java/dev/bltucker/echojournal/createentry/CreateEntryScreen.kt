@@ -38,9 +38,10 @@ import androidx.navigation.toRoute
 import dev.bltucker.echojournal.R
 import dev.bltucker.echojournal.common.Mood
 import dev.bltucker.echojournal.common.composables.AudioPlayer
-import dev.bltucker.echojournal.common.theme.MoodColors
+import dev.bltucker.echojournal.common.room.Topic
 import dev.bltucker.echojournal.createentry.composables.EntryDescriptionField
 import dev.bltucker.echojournal.createentry.composables.EntryTitleField
+import dev.bltucker.echojournal.createentry.composables.EntryTopics
 import dev.bltucker.echojournal.createentry.composables.MoodIndicator
 import dev.bltucker.echojournal.createentry.composables.MoodSelector
 import kotlinx.serialization.Serializable
@@ -78,6 +79,12 @@ fun NavGraphBuilder.createEntryScreen(onNavigateBack: () -> Unit){
             onClearSnackBarMessage = viewModel::onClearSnackbarMessage,
             onPlayPauseClick = viewModel::onPlayPauseClick,
             onDescriptionChange = viewModel::onDescriptionChange,
+
+            onCreateTopic = viewModel::onCreateTopic,
+            onTopicClick = viewModel::onTopicClick,
+            onAddTopicClick = viewModel::onAddTopicClick,
+            onUpdateTopicSearchQuery = viewModel::onUpdateTopicSearchQuery,
+            onDismissTopicDropDown = viewModel::onDismissTopicDropDown
         )
     }
 }
@@ -102,6 +109,12 @@ private fun CreateEntryScreen(
     onPlayPauseClick: () -> Unit,
 
     onDescriptionChange: (String) -> Unit,
+
+    onCreateTopic: () -> Unit,
+    onTopicClick: (Topic) -> Unit,
+    onAddTopicClick: () -> Unit,
+    onUpdateTopicSearchQuery: (String) -> Unit,
+    onDismissTopicDropDown: () -> Unit,
     ) {
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -160,6 +173,20 @@ private fun CreateEntryScreen(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                 description = model.description,
                 onDescriptionChange = onDescriptionChange
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            EntryTopics(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                isInEditMode = model.isShowingTopicSelector,
+                editModeText = model.topicSearchQuery,
+                availableTopics = model.availableTopics,
+                selectedTopics = model.selectedTopics.toList(),
+                onTopicDefaultToggled = onTopicClick,
+                onAddTopicClick = onAddTopicClick,
+                onUpdateTopicSearchQuery = onUpdateTopicSearchQuery,
+                onCreateTopic = onCreateTopic,
             )
 
             Spacer(modifier = Modifier.weight(1f))

@@ -9,6 +9,7 @@ import dev.bltucker.echojournal.common.Mood
 import dev.bltucker.echojournal.common.MoodRepository
 import dev.bltucker.echojournal.common.TopicsRepository
 import dev.bltucker.echojournal.common.room.JournalEntry
+import dev.bltucker.echojournal.common.room.Topic
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.firstOrNull
@@ -25,7 +26,6 @@ class CreateEntryScreenViewModel @Inject constructor(
     private val topicsRepository: TopicsRepository,
     private val moodRepository: MoodRepository,
     private val audioPlayer: AudioPlayer,
-    @Named("AudioDirectory") private val audioDirectory: File
 ) : ViewModel(){
 
     private val mutableModel = MutableStateFlow(CreateEntryScreenModel())
@@ -205,6 +205,71 @@ class CreateEntryScreenViewModel @Inject constructor(
     fun onDescriptionChange(updatedDescription: String){
         mutableModel.update {
             it.copy(description = updatedDescription)
+        }
+    }
+
+    fun onCreateTopic() {
+        viewModelScope.launch {
+            val searchQuery = mutableModel.value.topicSearchQuery
+
+            if (searchQuery.isBlank()) return@launch
+
+            try {
+                val newTopic = topicsRepository.createTopic(searchQuery)
+
+                mutableModel.update { currentModel ->
+                    currentModel.copy(
+                        selectedTopics = currentModel.selectedTopics + newTopic,
+                        isShowingTopicSelector = false,
+                        topicSearchQuery = ""
+                    )
+                }
+            } catch (e: Exception) {
+                //
+            }
+        }
+    }
+
+    fun onTopicClick(topic: Topic) {
+        mutableModel.update { currentModel ->
+            val updatedTopics = currentModel.selectedTopics.toMutableSet()
+            if (topic in updatedTopics) {
+                updatedTopics.remove(topic)
+            } else {
+                updatedTopics.add(topic)
+            }
+            currentModel.copy(selectedTopics = updatedTopics)
+        }
+    }
+
+    fun onAddTopicClick() {
+        mutableModel.update {
+            it.copy(
+                isShowingTopicSelector = true,
+                topicSearchQuery = ""
+            )
+        }
+    }
+
+    fun onUpdateTopicSearchQuery(query: String) {
+        mutableModel.update { currentModel ->
+            val filteredTopics = if (query.isEmpty()) {
+                currentModel.availableTopics
+            } else {
+                currentModel.availableTopics.filter {
+                    it.name.startsWith(query, ignoreCase = true)
+                }
+            }
+            currentModel.copy(
+                topicSearchQuery = query,
+                filteredTopics = filteredTopics
+            )
+        }
+    }
+
+    fun onDismissTopicDropDown(){
+        mutableModel.update {
+            it.copy(isShowingTopicSelector = false, topicSearchQuery = "")
         }
     }
 }

@@ -1,4 +1,4 @@
-package dev.bltucker.echojournal.settings.composables
+package dev.bltucker.echojournal.createentry.composables
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -41,24 +41,23 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.bltucker.echojournal.common.composables.TopicItem
 import dev.bltucker.echojournal.common.room.Topic
 import dev.bltucker.echojournal.common.theme.EchoJournalTheme
+import dev.bltucker.echojournal.common.composables.TopicItem
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun MyTopicsCard(
+fun EntryTopics(
     modifier: Modifier = Modifier,
     isInEditMode: Boolean = false,
     editModeText: String = "",
     availableTopics: List<Topic> = emptyList(),
-    defaultTopics: List<Topic> = emptyList(),
+    selectedTopics: List<Topic> = emptyList(),
 
     onTopicDefaultToggled: (Topic) -> Unit = {},
     onAddTopicClick: () -> Unit = {},
-    onUpdateEditModeText: (String) -> Unit = {},
+    onUpdateTopicSearchQuery: (String) -> Unit = {},
     onCreateTopic: () -> Unit = {},
-    onDismissTopicDropDown: () -> Unit = {}
 ) {
 
     val focusRequester = remember { FocusRequester() }
@@ -80,7 +79,7 @@ fun MyTopicsCard(
                 .padding(16.dp)
         ) {
             Text(
-                text = "My Topics",
+                text = "Entry Topics",
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -88,7 +87,7 @@ fun MyTopicsCard(
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = "Select default topics to apply to all new entries",
+                text = "Select topics to apply to this entry",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -101,11 +100,11 @@ fun MyTopicsCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                defaultTopics.forEach { topic ->
+                selectedTopics.forEach { topic ->
                     TopicItem(
                         modifier = Modifier.height(32.dp),
                         topic = topic,
-                        isDefaulted = topic in defaultTopics,
+                        isDefaulted = topic in selectedTopics,
                         onToggleDefault = { onTopicDefaultToggled(topic) }
                     )
                 }
@@ -118,7 +117,7 @@ fun MyTopicsCard(
                         BasicTextField(
                             value = editModeText,
                             onValueChange = { updatedValue: String ->
-                                onUpdateEditModeText(updatedValue)
+                                onUpdateTopicSearchQuery(updatedValue)
                             },
                             modifier = Modifier
                                 .height(32.dp)
@@ -149,7 +148,7 @@ fun MyTopicsCard(
                             onDismissRequest = { },
                         ) {
                             val menuTopics = if (editModeText == "") {
-                                availableTopics.filter { it !in defaultTopics }
+                                availableTopics.filter { it !in selectedTopics }
                             } else {
                                 availableTopics.filter {
                                     it.name.startsWith(
@@ -255,13 +254,13 @@ private fun TopicDropdownItem(
 @Composable
 fun MyTopicsCardPreview() {
     EchoJournalTheme {
-        MyTopicsCard(
+        EntryTopics(
             availableTopics = listOf(
                 Topic(name = "Work"),
                 Topic(name = "Family"),
                 Topic(name = "Health")
             ),
-            defaultTopics = listOf(
+            selectedTopics = listOf(
                 Topic(name = "Work"),
                 Topic(name = "Family")
             )
@@ -273,7 +272,7 @@ fun MyTopicsCardPreview() {
 @Composable
 fun EmptyMyTopicsCardPreview() {
     EchoJournalTheme {
-        MyTopicsCard()
+        EntryTopics()
     }
 }
 
@@ -282,7 +281,7 @@ fun EmptyMyTopicsCardPreview() {
 fun EditModeMyTopicsCardPreview() {
     EchoJournalTheme {
         Column(modifier = Modifier.fillMaxSize()) {
-            MyTopicsCard(
+            EntryTopics(
                 isInEditMode = true,
                 editModeText = "St",
                 availableTopics = listOf(

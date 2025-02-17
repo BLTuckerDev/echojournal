@@ -21,9 +21,11 @@ fun JournalEntryCard(
     modifier: Modifier = Modifier,
     state: JournalEntryCardState,
     onPlayPauseClick: (String) -> Unit = {},
-    onShowMoreClick: () -> Unit = {},
     onTopicClick: (String) -> Unit = {}
 ) {
+
+    var isExpanded by remember { mutableStateOf(false) }
+
     ElevatedCard(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -68,13 +70,15 @@ fun JournalEntryCard(
                     text = state.description,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = if (state.isDescriptionExpanded) Int.MAX_VALUE else 3,
+                    maxLines = if (isExpanded) Int.MAX_VALUE else 3,
                     overflow = TextOverflow.Ellipsis
                 )
 
-                if (!state.isDescriptionExpanded) {
+                if (!isExpanded && state.description.length > 110) {
                     TextButton(
-                        onClick = onShowMoreClick,
+                        onClick = {
+                            isExpanded = true
+                        },
                         contentPadding = PaddingValues(0.dp)
                     ) {
                         Text(
@@ -210,7 +214,33 @@ private fun JournalEntryCardExpandedDescriptionPreview() {
                         "sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. " +
                         "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris " +
                         "nisi ut aliquip ex ea commodo consequat.",
-                isDescriptionExpanded = true,
+                topics = listOf(
+                    Topic(name = "Work"),
+                    Topic(name = "Conundrums")
+                )
+            )
+        )
+    }
+}
+
+
+@Preview(showBackground = true)
+@Composable
+private fun JournalEntryCardOverflowedDescriptionPreview() {
+    EchoJournalTheme {
+        JournalEntryCard(
+            modifier = Modifier.padding(16.dp),
+            state = JournalEntryCardState(
+                id = "fake",
+                title = "My Entry",
+                time = "17:30",
+                mood = Mood.EXCITED,
+                audioDuration = "0:00/12:30",
+                isPlaying = false,
+                description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, " +
+                        "sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. " +
+                        "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris " +
+                        "nisi ut aliquip ex ea commodo consequat. Lorem Ipsum Some More",
                 topics = listOf(
                     Topic(name = "Work"),
                     Topic(name = "Conundrums")

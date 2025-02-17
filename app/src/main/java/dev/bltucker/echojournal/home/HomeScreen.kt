@@ -388,7 +388,6 @@ private fun HomeScreenContent(
                     },
                     items = entries,
                     onPlayPauseClick = onPlayPauseClick,
-                    onShowMoreClick = { /* TODO */ },
                     onTopicClick = { /* TODO */ },
                     onClickEntry = onClickEntry
                 )

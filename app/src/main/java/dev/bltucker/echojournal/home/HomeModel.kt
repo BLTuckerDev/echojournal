@@ -62,7 +62,6 @@ data class HomeModel(val isLoading: Boolean,
                         topics = topicsByEntry.getOrDefault(entry.id, emptyList()),
                         audioDuration = formatDuration(entry.durationSeconds),
                         isPlaying = isCurrentlyPlaying,
-                        isDescriptionExpanded = false,
                         mood = entry.mood,
                         audioProgress = currentProgress
                     )
@@ -120,6 +119,5 @@ data class JournalEntryCardState(
     val audioProgress: Float = 0f,
     val audioDuration: String,
     val isPlaying: Boolean = false,
-    val isDescriptionExpanded: Boolean = false,
     val mood: Mood
 )

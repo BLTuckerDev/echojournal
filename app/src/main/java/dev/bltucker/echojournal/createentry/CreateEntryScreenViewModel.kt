@@ -201,4 +201,10 @@ class CreateEntryScreenViewModel @Inject constructor(
             audioPlayer.playAudio(viewModelScope, audioFile, entry.id)
         }
     }
+
+    fun onDescriptionChange(updatedDescription: String){
+        mutableModel.update {
+            it.copy(description = updatedDescription)
+        }
+    }
 }

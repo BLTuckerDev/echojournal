@@ -39,6 +39,7 @@ import dev.bltucker.echojournal.R
 import dev.bltucker.echojournal.common.Mood
 import dev.bltucker.echojournal.common.composables.AudioPlayer
 import dev.bltucker.echojournal.common.theme.MoodColors
+import dev.bltucker.echojournal.createentry.composables.EntryDescriptionField
 import dev.bltucker.echojournal.createentry.composables.EntryTitleField
 import dev.bltucker.echojournal.createentry.composables.MoodIndicator
 import dev.bltucker.echojournal.createentry.composables.MoodSelector
@@ -76,6 +77,7 @@ fun NavGraphBuilder.createEntryScreen(onNavigateBack: () -> Unit){
             onSave = viewModel::onSave,
             onClearSnackBarMessage = viewModel::onClearSnackbarMessage,
             onPlayPauseClick = viewModel::onPlayPauseClick,
+            onDescriptionChange = viewModel::onDescriptionChange,
         )
     }
 }
@@ -98,6 +100,8 @@ private fun CreateEntryScreen(
     onClearSnackBarMessage: () -> Unit,
 
     onPlayPauseClick: () -> Unit,
+
+    onDescriptionChange: (String) -> Unit,
     ) {
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -149,6 +153,14 @@ private fun CreateEntryScreen(
                 mood = model.journalEntry?.mood ?: Mood.NEUTRAL,
                 onPlayPauseClick = onPlayPauseClick,
                 )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            EntryDescriptionField(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                description = model.description,
+                onDescriptionChange = onDescriptionChange
+            )
 
             Spacer(modifier = Modifier.weight(1f))
 
